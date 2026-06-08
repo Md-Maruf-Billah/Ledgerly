@@ -196,6 +196,11 @@ function App() {
       setLoading(false);
       return;
     }
+    if (!data.access_token) {
+      setAuthError('Account created — please check your email and confirm your account, then sign in.');
+      setLoading(false);
+      return;
+    }
     api.setToken(data.access_token);
     setIsDemoMode(false);
     setCurrentScreen('tour');

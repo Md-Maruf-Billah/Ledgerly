@@ -1,172 +1,497 @@
 export const businessTypeTasks = {
+
+  // ─── Sole Trader ────────────────────────────────────────────────────────────
   'Sole Trader': [
     {
       id: 'st-1',
-      name: 'Quarterly BAS Lodgement',
+      name: 'BAS Lodgement — Q3 FY2026',
       description:
-        'Your Business Activity Statement reports GST and PAYG instalments to the ATO. Lodging on time helps avoid penalties and keeps cash flow predictable.',
-      dueDate: '2026-05-28',
+        'Your Q3 Business Activity Statement (Jan–Mar) reports GST collected and PAYG instalments to the ATO. An overdue lodgement can attract penalties and interest charges.',
+      dueDate: '2026-04-28',
       steps: [
-        'Log in to ATO Online Services for Business',
-        'Complete the BAS fields for GST collected and paid',
-        'Submit and save your lodgement receipt',
+        'Log in to ATO Online Services for Business or your tax agent portal',
+        'Reconcile GST collected and GST credits for the quarter',
+        'Enter PAYG instalment amount and any fuel tax credits',
+        'Submit the BAS and save the confirmation reference number',
       ],
     },
     {
       id: 'st-2',
-      name: 'Superannuation Payment',
+      name: 'PAYG Instalment — June Quarter',
       description:
-        'Super contributions for eligible workers must be paid by quarterly deadlines. Staying current protects your team and avoids super guarantee charges.',
-      dueDate: '2026-06-19',
+        'Your PAYG instalment for the June quarter spreads income tax obligations across the year, preventing a large bill at tax time.',
+      dueDate: '2026-06-21',
       steps: [
-        'Check super amounts owing for each employee',
-        'Pay via your clearing house',
-        'Save payment confirmation for records',
+        'Check your ATO instalment notice for the amount due',
+        'Review if your income has changed and adjust if needed',
+        'Pay via ATO Online, BPAY, or your bank',
+        'Save your payment receipt and note the reference number',
       ],
     },
     {
       id: 'st-3',
-      name: 'Business Name Renewal',
+      name: 'BAS Lodgement — Q4 FY2026',
       description:
-        'Renewing your ASIC business name keeps your trading identity active and compliant.',
-      dueDate: '2026-07-15',
+        'Your Q4 Business Activity Statement (Apr–Jun) closes out the financial year. Accurate reporting now avoids amendments later.',
+      dueDate: '2026-07-28',
       steps: [
-        'Open ASIC Connect',
-        'Review renewal period and details',
-        'Pay the renewal fee and keep receipt',
+        'Export income and expense data from your bookkeeping software',
+        'Reconcile GST collected and input tax credits for Apr–Jun',
+        'Complete and lodge the BAS via ATO Business Portal',
+        'Save the lodgement receipt and update your records',
+      ],
+    },
+    {
+      id: 'st-4',
+      name: 'Superannuation Contribution — Q4',
+      description:
+        'If you pay yourself a wage or have employees, super contributions for the April–June quarter are due 28 July. Missing this triggers the super guarantee charge.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Calculate 11.5% of ordinary time earnings for the quarter',
+        'Log in to your super clearing house or fund portal',
+        'Submit the payment and download the payment confirmation',
+        'Record the payment in your payroll or accounting software',
+      ],
+    },
+    {
+      id: 'st-5',
+      name: 'Business Name Renewal (ASIC)',
+      description:
+        'Your ASIC business name registration must be renewed to keep your trading name active and legally protected.',
+      dueDate: '2026-09-01',
+      steps: [
+        'Log in to ASIC Connect at connect.asic.gov.au',
+        'Check the renewal period (1 year or 3 year) and confirm trading details',
+        'Pay the renewal fee and download the renewal certificate',
+        'Update your ABN registration if any business details have changed',
+      ],
+    },
+    {
+      id: 'st-6',
+      name: 'Annual Tax Return — FY2026',
+      description:
+        'Your individual tax return for FY2026 (July 2025–June 2026) must be lodged by 31 October. Claiming all eligible deductions now keeps your tax bill as low as possible.',
+      dueDate: '2026-10-31',
+      steps: [
+        'Gather all income summaries, invoices, and bank statements for FY2026',
+        'List deductible expenses: home office, vehicle, tools, subscriptions',
+        'Log in to myTax or brief your tax agent with all documents',
+        'Review the return, check for errors, then lodge and save confirmation',
       ],
     },
   ],
+
+  // ─── Retail ─────────────────────────────────────────────────────────────────
   Retail: [
     {
       id: 'rt-1',
-      name: 'PAYG Withholding Statement',
+      name: 'PAYG Withholding — May Statement',
       description:
-        'PAYG withholding reports tax withheld from wages. Accurate reporting helps avoid payroll compliance issues.',
-      dueDate: '2026-05-10',
-      steps: ['Download payroll summary', 'Complete PAYG withholding details', 'Submit to ATO and archive confirmation'],
+        'Monthly PAYG withholding statements ensure tax withheld from employee wages is reported and paid to the ATO on time.',
+      dueDate: '2026-05-21',
+      steps: [
+        'Run your payroll summary report for the month of May',
+        'Confirm total gross wages and tax withheld figures',
+        'Lodge the activity statement via ATO Business Portal',
+        'Pay the withholding amount and archive the confirmation',
+      ],
     },
     {
       id: 'rt-2',
-      name: 'Quarterly BAS Lodgement',
+      name: 'Workers Compensation Declaration',
       description:
-        'Your BAS reconciles GST and other obligations. Lodging on time supports smooth retail cash flow planning.',
-      dueDate: '2026-05-18',
-      steps: ['Review sales and GST totals', 'Complete BAS form', 'Lodge and save receipt'],
+        'Annual wages declaration to your workers compensation insurer confirms your payroll exposure and sets next year\'s premium.',
+      dueDate: '2026-06-12',
+      steps: [
+        'Pull total wages and contractor payments for the policy period',
+        'Log in to your insurer\'s online portal',
+        'Complete the annual declaration form and submit',
+        'Save the insurer confirmation and update your HR records',
+      ],
     },
     {
       id: 'rt-3',
-      name: 'Workers Compensation Declaration',
+      name: 'STP Year-End Finalisation',
       description:
-        'Annual workers compensation declarations confirm wages and policy obligations for your team.',
-      dueDate: '2026-06-12',
-      steps: ['Gather annual wages figure', 'Complete insurer declaration form', 'Submit and retain confirmation'],
+        'Single Touch Payroll finalisation confirms all employee payment summaries are correct so your staff can lodge their own tax returns.',
+      dueDate: '2026-07-14',
+      steps: [
+        'Review all employee payroll records for FY2026 in your payroll software',
+        'Correct any errors in wages, PAYG, or super figures',
+        'Submit the finalisation event through STP-enabled software',
+        'Notify employees that their income statement is tax-ready in myGov',
+      ],
+    },
+    {
+      id: 'rt-4',
+      name: 'BAS Lodgement — Q4 FY2026',
+      description:
+        'Your quarterly BAS for April–June covers GST on retail sales and input credits on stock purchases. Getting it right now avoids a corrective amendment.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Reconcile POS sales data with your accounting software for Apr–Jun',
+        'Check that all supplier invoices with GST credits are captured',
+        'Lodge the BAS via ATO Business Portal or your bookkeeper',
+        'Pay any GST owing and save the lodgement receipt',
+      ],
+    },
+    {
+      id: 'rt-5',
+      name: 'Superannuation Payment — Q4',
+      description:
+        'Super guarantee payments for all eligible retail staff for the April–June quarter must clear your clearing house by 28 July.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Calculate 11.5% of each employee\'s ordinary time earnings for Q4',
+        'Log in to your super clearing house and enter contribution amounts',
+        'Submit and allow 3–5 business days for processing to funds',
+        'Download payment confirmation and file against each employee record',
+      ],
+    },
+    {
+      id: 'rt-6',
+      name: 'Annual Tax Return — FY2026',
+      description:
+        'Your business and/or individual tax return for FY2026 captures all retail income, cost of goods sold, and operating expenses.',
+      dueDate: '2026-10-31',
+      steps: [
+        'Reconcile all income, COGS, and expense accounts in your accounting software',
+        'Prepare a depreciation schedule for fixtures, fittings, and equipment',
+        'Provide your accountant or tax agent with all FY2026 financial reports',
+        'Review the draft return, approve, and lodge before the deadline',
+      ],
     },
   ],
+
+  // ─── Hospitality ────────────────────────────────────────────────────────────
   Hospitality: [
     {
       id: 'hs-1',
-      name: 'Single Touch Payroll Finalisation',
+      name: 'STP Finalisation — FY2026',
       description:
-        'STP finalisation confirms year-to-date payroll records for employees and the ATO.',
-      dueDate: '2026-05-09',
-      steps: ['Review payroll entries', 'Finalise STP event in payroll software', 'Notify employees records are tax ready'],
+        'Finalising your Single Touch Payroll data lets employees access their income statements via myGov so they can lodge their tax returns.',
+      dueDate: '2026-05-14',
+      steps: [
+        'Check all staff payroll records in your STP-enabled software',
+        'Review and correct any discrepancies in wages, allowances, or PAYG',
+        'Submit the year-end finalisation event to the ATO',
+        'Inform staff their income statements are available in myGov',
+      ],
     },
     {
       id: 'hs-2',
-      name: 'Quarterly Super Payment',
+      name: 'Quarterly Super Payment — Q4',
       description:
-        'Hospitality rosters can change quickly, so super checks each quarter prevent underpayments.',
-      dueDate: '2026-05-22',
-      steps: ['Confirm eligible earnings', 'Process super payments', 'Save payment evidence'],
+        'Casual and part-time hospitality rosters make super underpayments easy to miss. Confirming all eligible hours prevents super guarantee charges.',
+      dueDate: '2026-06-21',
+      steps: [
+        'Export all timesheets and confirm ordinary time earnings per employee',
+        'Calculate 11.5% super on eligible earnings including casual loadings',
+        'Submit contributions through your clearing house before the deadline',
+        'Save payment receipts against each employee\'s payroll record',
+      ],
     },
     {
       id: 'hs-3',
-      name: 'Food Business Registration Renewal',
+      name: 'Food Business Licence Renewal',
       description:
-        'Local council renewals keep your food service registration active.',
-      dueDate: '2026-06-30',
-      steps: ['Check council renewal notice', 'Update business details if needed', 'Pay and file certificate'],
+        'Your local council food business registration must be renewed annually to legally operate and pass health inspections.',
+      dueDate: '2026-07-01',
+      steps: [
+        'Check your renewal notice from the local council for fees and forms',
+        'Confirm business name, premises address, and food handling category are current',
+        'Pay the renewal fee online or in person at the council office',
+        'Display the renewed certificate prominently at your premises',
+      ],
+    },
+    {
+      id: 'hs-4',
+      name: 'BAS Lodgement — Q4 FY2026',
+      description:
+        'Your Q4 BAS captures GST on food, beverage, and function sales for April–June and closes out your FY2026 GST position.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Pull POS and event sales reports for April, May, and June',
+        'Separate GST-free food sales from GST-taxable alcohol and processed items',
+        'Enter figures into ATO Business Portal and review for accuracy',
+        'Lodge, pay any GST balance, and save the confirmation receipt',
+      ],
+    },
+    {
+      id: 'hs-5',
+      name: 'Liquor Licence Renewal',
+      description:
+        'Your state liquor authority licence must be renewed to legally sell or serve alcohol on premises. Late renewal can lead to immediate trading restrictions.',
+      dueDate: '2026-08-31',
+      steps: [
+        'Locate your current licence and confirm the renewal date with your state authority',
+        'Complete the online renewal application with updated responsible service details',
+        'Pay the annual licence fee and upload any required RSA certificates',
+        'Display the renewed licence as required by your state liquor laws',
+      ],
+    },
+    {
+      id: 'hs-6',
+      name: 'Annual Tax Return — FY2026',
+      description:
+        'Your hospitality business tax return for FY2026 must capture all revenue streams, food cost, wages, and occupancy expenses.',
+      dueDate: '2026-10-31',
+      steps: [
+        'Export P&L and balance sheet reports from your accounting software',
+        'Prepare a list of capital purchases (equipment, fitout) for depreciation',
+        'Forward all financials and receipts to your accountant or tax agent',
+        'Approve the final return and ensure lodgement by 31 October',
+      ],
     },
   ],
+
+  // ─── Trades ─────────────────────────────────────────────────────────────────
   Trades: [
     {
       id: 'tr-1',
-      name: 'GST Instalment Review',
+      name: 'GST Instalment — Q3 Review',
       description:
-        'Reviewing GST instalments helps match your expected annual position and avoids end-of-year surprises.',
-      dueDate: '2026-05-08',
-      steps: ['Check prior BAS trends', 'Adjust instalment if required', 'Submit update to ATO'],
+        'If your annual GST turnover is between $10M and $20M you lodge quarterly instalments. Reviewing the amount now avoids a large true-up at year end.',
+      dueDate: '2026-04-28',
+      steps: [
+        'Log in to ATO Online Services and check the instalment amount',
+        'Compare actual GST liabilities with the instalment to see if a variation is needed',
+        'Vary the instalment if your income has dropped significantly',
+        'Pay the instalment and save the reference number',
+      ],
     },
     {
       id: 'tr-2',
-      name: 'PAYG Instalment Notice',
+      name: 'Contractor Licence Renewal',
       description:
-        'PAYG instalments spread income tax payments over the year and keep obligations manageable.',
-      dueDate: '2026-05-19',
-      steps: ['Review income estimate', 'Confirm instalment amount', 'Pay by due date'],
+        'Your contractor or builder\'s licence issued by your state authority must be renewed to legally quote and carry out licensed trade work.',
+      dueDate: '2026-06-14',
+      steps: [
+        'Check your licence expiry date at your state authority\'s portal',
+        'Complete the renewal application and attach any required CPD evidence',
+        'Pay the renewal fee and save the new licence number',
+        'Update your licence number on all quotes, contracts, and signage',
+      ],
     },
     {
       id: 'tr-3',
-      name: 'Contractor Agreement Audit',
+      name: 'Workers Compensation Renewal',
       description:
-        'Periodic contract review supports sham contracting compliance and clear scope terms.',
-      dueDate: '2026-06-15',
-      steps: ['List active subcontractors', 'Review agreement terms', 'Update and archive signed copies'],
+        'Annual workers compensation policy renewal ensures your employees and subcontractors are covered for workplace injuries.',
+      dueDate: '2026-07-15',
+      steps: [
+        'Gather actual wages paid to employees and contractors for the year',
+        'Contact your insurer or complete online renewal with wages declaration',
+        'Review coverage limits and include any new employees or trade categories',
+        'Pay the premium and file the renewal certificate',
+      ],
+    },
+    {
+      id: 'tr-4',
+      name: 'BAS Lodgement — Q4 FY2026',
+      description:
+        'Your Q4 BAS captures GST on jobs invoiced during April–June and input tax credits on materials and equipment purchased.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Export all tax invoices raised and supplier bills received for Apr–Jun',
+        'Reconcile GST collected against GST credits for materials and subcontractors',
+        'Lodge via ATO Business Portal and note the lodgement reference',
+        'Pay any net GST owing and file the confirmation',
+      ],
+    },
+    {
+      id: 'tr-5',
+      name: 'Subcontractor TPAR Preparation',
+      description:
+        'The Taxable Payments Annual Report (TPAR) must be lodged by 28 August for all building and construction businesses that pay subcontractors.',
+      dueDate: '2026-08-28',
+      steps: [
+        'List all subcontractors paid during FY2026 with their ABN and amounts',
+        'Verify each subcontractor\'s ABN at abr.business.gov.au',
+        'Enter payment data into your accounting software or ATO\'s TPAR tool',
+        'Lodge the TPAR by 28 August and save the ATO confirmation',
+      ],
+    },
+    {
+      id: 'tr-6',
+      name: 'Annual Tax Return — FY2026',
+      description:
+        'Your trades business tax return for FY2026 must capture all job revenue, materials, tools, vehicle costs, and home-office deductions.',
+      dueDate: '2026-10-31',
+      steps: [
+        'Compile a full list of income from jobs completed in FY2026',
+        'List all deductible expenses: tools, vehicle (logbook method), protective gear',
+        'Calculate depreciation on plant and equipment purchased during the year',
+        'Lodge via myTax or through your tax agent before 31 October',
+      ],
     },
   ],
+
+  // ─── Consulting ─────────────────────────────────────────────────────────────
   Consulting: [
     {
       id: 'cs-1',
-      name: 'Quarterly BAS Lodgement',
+      name: 'BAS Lodgement — Q3 FY2026',
       description:
-        'Consulting income can be variable, so BAS lodgement keeps GST obligations transparent and controlled.',
-      dueDate: '2026-05-11',
-      steps: ['Compile invoices and expenses', 'Complete BAS in ATO portal', 'Submit and save reference number'],
+        'Your Q3 BAS (Jan–Mar) reports GST on consulting fees and input credits on business expenses. Variable consulting income makes accurate reporting especially important.',
+      dueDate: '2026-04-28',
+      steps: [
+        'Export all invoices issued and expenses paid for Jan–Mar from your accounting tool',
+        'Confirm GST collected on all taxable consulting invoices',
+        'Claim input tax credits on eligible business expenses',
+        'Lodge the BAS and save the confirmation number',
+      ],
     },
     {
       id: 'cs-2',
       name: 'Professional Indemnity Renewal',
       description:
-        'Maintaining current indemnity cover is often required by client contracts and protects your practice.',
-      dueDate: '2026-05-24',
-      steps: ['Review policy coverage', 'Confirm annual turnover with insurer', 'Renew policy and file certificate'],
+        'PI insurance covers claims arising from advice or services you\'ve provided. Many client contracts require you to maintain current cover at specified limits.',
+      dueDate: '2026-06-20',
+      steps: [
+        'Review your current policy schedule for coverage limits and exclusions',
+        'Estimate your projected annual fee income for the renewal period',
+        'Compare quotes or renew with your current insurer before the expiry date',
+        'Save the certificate of currency and send a copy to any clients who require it',
+      ],
     },
     {
       id: 'cs-3',
-      name: 'Income Tax Prepayment Check',
+      name: 'PAYG Instalment — June Quarter',
       description:
-        'Checking prepayments early helps avoid year-end tax stress and supports smoother budgeting.',
-      dueDate: '2026-06-20',
-      steps: ['Estimate annual profit', 'Review PAYG paid to date', 'Set aside or adjust forecast amount'],
+        'Consulting income can spike, making June quarter PAYG instalments critical for avoiding a large year-end tax bill.',
+      dueDate: '2026-06-28',
+      steps: [
+        'Log in to ATO Business Portal and check the Q4 instalment notice',
+        'Compare instalment amount to your actual income for the quarter',
+        'Vary the instalment down if income has dropped significantly',
+        'Pay the amount due and note the transaction reference',
+      ],
+    },
+    {
+      id: 'cs-4',
+      name: 'BAS Lodgement — Q4 FY2026',
+      description:
+        'Your Q4 BAS closes out FY2026 GST reporting for April–June. Accurate lodgement now avoids a corrective amendment after tax return time.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Reconcile all consulting invoices raised and expenses incurred for Apr–Jun',
+        'Check for any unpaid invoices that fall outside the cash or accruals basis',
+        'Lodge the BAS via the ATO portal or your bookkeeper',
+        'Pay any net GST and file the receipt',
+      ],
+    },
+    {
+      id: 'cs-5',
+      name: 'Continuing Professional Development Log',
+      description:
+        'Most professional bodies require a set number of CPD hours per year. Completing your log now avoids a rush before your membership renewal.',
+      dueDate: '2026-09-30',
+      steps: [
+        'Log in to your professional body\'s CPD portal and check hours accumulated',
+        'List any completed training, webinars, conferences, or self-directed study',
+        'Upload supporting evidence where required (certificates, attendance records)',
+        'Submit your CPD declaration and save the completion receipt',
+      ],
+    },
+    {
+      id: 'cs-6',
+      name: 'Annual Tax Return — FY2026',
+      description:
+        'Your consulting business and individual tax return for FY2026 captures all fee income, home office costs, subscriptions, and professional development expenses.',
+      dueDate: '2026-10-31',
+      steps: [
+        'Prepare a summary of all consulting income invoiced in FY2026',
+        'List deductible expenses: home office, software subscriptions, professional fees, CPD',
+        'Gather private health insurance details and any other personal deductions',
+        'Lodge via myTax or provide all documents to your tax agent by the deadline',
+      ],
     },
   ],
+
+  // ─── Small Team ─────────────────────────────────────────────────────────────
   'Small Team': [
     {
       id: 'sm-1',
-      name: 'PAYG Withholding Statement',
+      name: 'PAYG Withholding — May Payment',
       description:
-        'PAYG withholding keeps employee tax obligations current through regular reporting.',
-      dueDate: '2026-05-07',
-      steps: ['Export payroll withholding report', 'Complete ATO statement', 'Submit and record confirmation'],
+        'Monthly PAYG withholding ensures tax deducted from your team\'s wages is remitted to the ATO on time, keeping payroll compliant.',
+      dueDate: '2026-05-21',
+      steps: [
+        'Run your May payroll summary and confirm total tax withheld',
+        'Log in to ATO Business Portal and create an activity statement',
+        'Enter the PAYG withholding amount and lodge the statement',
+        'Transfer the payment to the ATO and archive the receipt',
+      ],
     },
     {
       id: 'sm-2',
-      name: 'Quarterly Super Payment',
+      name: 'STP Year-End Finalisation',
       description:
-        'Super guarantee contributions are a core employer obligation for small teams.',
-      dueDate: '2026-05-21',
-      steps: ['Validate employee balances', 'Pay through clearing house', 'Confirm all payments settled'],
+        'Finalising STP confirms your team\'s income statements so they can access their payment summaries in myGov and lodge their tax returns.',
+      dueDate: '2026-07-14',
+      steps: [
+        'Review all employee records in your payroll software for the full FY2026',
+        'Correct any discrepancies in gross wages, PAYG withheld, or super reported',
+        'Submit the STP finalisation event through your payroll software',
+        'Notify all employees their income statement is ready in myGov',
+      ],
     },
     {
       id: 'sm-3',
+      name: 'Superannuation Payment — Q4',
+      description:
+        'Super contributions for all eligible employees for the April–June quarter must clear your clearing house by 28 July to avoid the super guarantee charge.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Calculate 11.5% of each employee\'s ordinary time earnings for Q4',
+        'Log in to your super clearing house portal (e.g. ATO Small Business Super)',
+        'Enter each employee\'s fund details and contribution amount',
+        'Submit and save the payment confirmation for each employee',
+      ],
+    },
+    {
+      id: 'sm-4',
+      name: 'BAS Lodgement — Q4 FY2026',
+      description:
+        'Your Q4 BAS for April–June closes out FY2026 GST reporting and should be lodged promptly to give you a clear picture before year-end accounts.',
+      dueDate: '2026-07-28',
+      steps: [
+        'Reconcile all sales and purchases in your accounting software for Q4',
+        'Confirm GST collected and input tax credits claimed are accurate',
+        'Lodge the BAS via ATO Business Portal or through your bookkeeper',
+        'Pay any net GST and file the lodgement confirmation',
+      ],
+    },
+    {
+      id: 'sm-5',
       name: 'Annual Leave Liability Review',
       description:
-        'Reviewing leave balances helps maintain healthy payroll planning and compliance records.',
-      dueDate: '2026-06-28',
-      steps: ['Check leave balances in payroll', 'Review accrual accuracy', 'Document adjustments if needed'],
+        'Reviewing accumulated annual leave balances helps you manage payroll liabilities, plan staffing during slow periods, and stay compliant with the Fair Work Act.',
+      dueDate: '2026-08-15',
+      steps: [
+        'Export a leave balance report for all employees from your payroll software',
+        'Identify staff with excessive balances (typically more than 8 weeks)',
+        'Consult Fair Work guidelines and consider sending excess leave notices',
+        'Update payroll records and document any leave agreements made',
+      ],
+    },
+    {
+      id: 'sm-6',
+      name: 'Annual Tax Return — FY2026',
+      description:
+        'Your business tax return for FY2026 must capture all income, wages, super, and operating expenses. Completing it accurately now avoids costly amendments.',
+      dueDate: '2026-10-31',
+      steps: [
+        'Prepare your FY2026 profit and loss statement and balance sheet',
+        'Reconcile wages, super paid, and PAYG withholding reported via STP',
+        'Gather all receipts for deductible business expenses',
+        'Lodge via your tax agent or myTax and save the ATO confirmation',
+      ],
     },
   ],
+
 };
 
 export const demoUserProfile = {
