@@ -1,15 +1,20 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo, memo } from 'react';
 import TaskCard from './TaskCard';
 import ObligationTimeline from './ObligationTimeline';
 import { StarIcon, BellIcon, SettingsIcon, AlertIcon, CheckIcon, PlusIcon, ArrowRightIcon, CalendarIcon } from './Icons';
 
 function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSummary, onOpenSettings, onOpenNotifications, onOpenPricing, onAddTask, onOpenCalendar, unreadCount }) {
-  const monthLabel = new Date().toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
-  const overdue  = tasks.filter((t) => t.status === 'overdue');
-  const dueSoon  = tasks.filter((t) => t.status === 'due-soon');
-  const upcoming = tasks.filter((t) => t.status === 'upcoming');
-  const completed = tasks.filter((t) => t.status === 'completed');
-  const pendingCount = tasks.length - completed.length;
+  // monthLabel is stable for the lifetime of one dashboard mount
+  const monthLabel = useMemo(
+    () => new Date().toLocaleDateString('en-AU', { month: 'long', year: 'numeric' }),
+    []
+  );
+  // Filtered task groups — only recompute when tasks array reference changes
+  const overdue      = useMemo(() => tasks.filter(t => t.status === 'overdue'),    [tasks]);
+  const dueSoon      = useMemo(() => tasks.filter(t => t.status === 'due-soon'),   [tasks]);
+  const upcoming     = useMemo(() => tasks.filter(t => t.status === 'upcoming'),   [tasks]);
+  const completed    = useMemo(() => tasks.filter(t => t.status === 'completed'),  [tasks]);
+  const pendingCount = useMemo(() => tasks.length - completed.length, [tasks, completed]);
   const overdueRef = useRef(null);
 
   const scrollToOverdue = () =>
@@ -147,4 +152,6 @@ function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSumma
   );
 }
 
-export default Dashboard;
+// memo: Dashboard re-renders only when its props change.
+// Without this it re-renders on every App.jsx state change (e.g. toast).
+export default memo(Dashboard);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { formatDate, getDaysLeft } from '../utils/dates';
 
 function urgencyLabel(task) {
@@ -43,4 +43,7 @@ function TaskCard({ task, onOpen, index = 0 }) {
   );
 }
 
-export default TaskCard;
+// memo: TaskCard is a pure presentational component. Without this, every
+// parent state change (toast, notifications, etc.) re-renders all visible
+// task cards even when the task data has not changed.
+export default memo(TaskCard);

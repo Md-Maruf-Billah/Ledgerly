@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import LoginScreen from './components/LoginScreen';
 import BusinessProfileForm from './components/BusinessProfileForm';
 import BusinessTypeSelector from './components/BusinessTypeSelector';
@@ -274,8 +274,11 @@ function App() {
   };
 
   // ─── Task actions ────────────────────────────────────────────────────────────
-  const handleOpenTask = (task) => setSelectedTask(task);
-  const handleCloseTask = () => setSelectedTask(null);
+  // useCallback: these are passed as props to memo'd children. Without it,
+  // a new function reference on every App render defeats memo on Dashboard,
+  // TaskDetailPanel, CalendarView, etc.
+  const handleOpenTask  = useCallback((task) => setSelectedTask(task), []);
+  const handleCloseTask = useCallback(() => setSelectedTask(null), []);
 
   const handleMarkDone = async (taskId) => {
     const task = tasks.find(t => t.id === taskId);
@@ -353,14 +356,20 @@ function App() {
   // handleLogout is defined above with useCallback (needed by 401 listener)
 
   // ─── Notifications ────────────────────────────────────────────────────────────
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = useMemo(
+    () => notifications.filter(n => !n.read).length,
+    [notifications]
+  );
 
-  const markAllRead = async () => {
+  const markAllRead = useCallback(async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     if (!isDemoMode) await api.markAllNotificationsRead();
-  };
+  }, [isDemoMode]);
 
-  const pendingTasks = tasks.filter(t => t.status !== 'completed');
+  const pendingTasks = useMemo(
+    () => tasks.filter(t => t.status !== 'completed'),
+    [tasks]
+  );
 
   if (!ready) return null;
 
