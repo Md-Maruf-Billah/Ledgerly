@@ -922,6 +922,17 @@ button:focus-visible {
 }
 .demo-hint span { color: #d05000; font-family: monospace; }
 
+.login-switch-mode {
+  font-size: 0.82rem; color: #888888; margin-top: 0.9rem; text-align: center;
+}
+.link-btn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: #ff6200; font-size: inherit; font-family: inherit;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.link-btn:hover { color: #d05000; }
+.link-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── Welcome screen ───────────────────────────────────────────── */
 .welcome-screen { display: grid; place-items: center; min-height: 80vh; }
 .welcome-card {

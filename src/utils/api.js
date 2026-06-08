@@ -1,131 +1,154 @@
 /**
- * Ledgerly API client.
- *
- * Base URL is read from the VITE_API_BASE_URL env var so that
- * local dev (http://localhost:8000) and production URLs can both
- * be set without code changes.
- *
- * All functions return { data, error } — callers never need try/catch.
- *
- * INTEGRATION NOTE: Each function currently returns a local mock
- * response. Replace the mock block with the fetch() call once the
- * FastAPI backend is running and Supabase is connected.
+ * Ledgerly API client — connects to the FastAPI backend.
+ * All functions return { data, error }.
  */
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+const TOKEN_KEY = 'ledgerly_token';
+
+// ─── Token helpers ────────────────────────────────────────────────────────────
+
+export function getToken() {
+  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
+}
+
+export function setToken(token) {
+  try { localStorage.setItem(TOKEN_KEY, token); } catch {}
+}
+
+export function clearToken() {
+  try { localStorage.removeItem(TOKEN_KEY); } catch {}
+}
+
+// ─── Core request ─────────────────────────────────────────────────────────────
 
 async function request(method, path, body) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      ...(body ? { body: JSON.stringify(body) } : {}),
+      headers,
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
     const data = await res.json();
-    if (!res.ok) return { data: null, error: data?.detail ?? 'Request failed' };
+    if (!res.ok) return { data: null, error: data?.detail ?? 'Request failed.' };
     return { data, error: null };
   } catch (err) {
     return { data: null, error: err.message };
   }
 }
 
-// ─── Health ──────────────────────────────────────────────────────────────────
+// ─── Data transformers ────────────────────────────────────────────────────────
+// Backend uses snake_case; frontend uses camelCase.
+
+export function transformTask(t) {
+  return {
+    id: t.id,
+    name: t.name,
+    description: t.description ?? '',
+    dueDate: t.due_date,
+    status: t.status,
+    // Steps are stored as [{label, done}] in DB; frontend needs ["label", ...]
+    steps: Array.isArray(t.steps)
+      ? t.steps.map(s => (typeof s === 'string' ? s : s.label))
+      : [],
+    isCustom: t.is_custom ?? false,
+    priority: t.priority ?? 'medium',
+    completedAt: t.completed_at
+      ? new Date(t.completed_at).toLocaleDateString('en-AU', {
+          day: 'numeric', month: 'long', year: 'numeric',
+        })
+      : null,
+  };
+}
+
+export function transformNotification(n) {
+  return {
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    body: n.body,
+    timestamp: new Date(n.created_at).getTime(),
+    read: n.is_read,
+  };
+}
+
+export function transformProfile(p) {
+  return {
+    fullName: p.full_name,
+    businessName: p.business_name,
+    email: p.email,
+    state: p.state,
+    type: p.business_type,
+  };
+}
+
+// ─── Health ───────────────────────────────────────────────────────────────────
 
 export const healthCheck = () => request('GET', '/health');
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-/**
- * INTEGRATION POINT — Auth: Login
- * Replace mock return with: return request('POST', '/api/auth/login', { email, password });
- */
-export async function login(email, password) {
-  // Mock: accepted by LoginScreen's own validation
-  return { data: { message: 'ok' }, error: null };
-}
+export const login = (email, password) =>
+  request('POST', '/api/auth/login', { email, password });
+
+export const register = (email, password) =>
+  request('POST', '/api/auth/register', { email, password });
+
+export const logout = () => request('POST', '/api/auth/logout');
+
+/** Validate a stored token — returns user info or error. */
+export const getMe = () => request('GET', '/api/auth/me');
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
 
 /**
- * INTEGRATION POINT — Auth: Register
- * Replace mock return with: return request('POST', '/api/auth/register', payload);
+ * Called at the end of onboarding. Sends profile + seed task list in one request.
+ * Returns { profile, tasks, notifications }.
  */
-export async function register(payload) {
-  return { data: { message: 'ok' }, error: null };
-}
+export const saveProfile = (profileData, taskList) =>
+  request('POST', '/api/profile', {
+    full_name: profileData.fullName,
+    business_name: profileData.businessName,
+    email: profileData.email,
+    state: profileData.state,
+    business_type: profileData.type,
+    tasks: taskList,
+  });
 
 /**
- * INTEGRATION POINT — Auth: Logout
- * Replace mock return with: return request('POST', '/api/auth/logout');
+ * Restore session — fetches profile + tasks + notifications for a returning user.
  */
-export async function logout() {
-  return { data: { message: 'ok' }, error: null };
-}
-
-// ─── Business Profile ─────────────────────────────────────────────────────────
-
-/**
- * INTEGRATION POINT — Profile: Save onboarding profile
- * Replace mock return with: return request('POST', '/api/profile', profile);
- */
-export async function saveProfile(profile) {
-  return { data: profile, error: null };
-}
-
-/**
- * INTEGRATION POINT — Profile: Fetch profile
- * Replace mock return with: return request('GET', `/api/profile/${userId}`);
- */
-export async function fetchProfile(userId) {
-  return { data: null, error: null };
-}
+export const getProfile = () => request('GET', '/api/profile/me');
 
 // ─── Tasks ────────────────────────────────────────────────────────────────────
 
-/**
- * INTEGRATION POINT — Tasks: Fetch all tasks for user
- * Replace mock return with: return request('GET', `/api/tasks/${userId}`);
- */
-export async function fetchTasks(userId) {
-  return { data: null, error: null };
-}
+export const fetchTasks = () => request('GET', '/api/tasks');
 
-/**
- * INTEGRATION POINT — Tasks: Create a custom task
- * Replace mock return with: return request('POST', `/api/tasks/${userId}`, task);
- */
-export async function createTask(userId, task) {
-  return { data: task, error: null };
-}
+export const createTask = (task) =>
+  request('POST', '/api/tasks', {
+    name: task.name,
+    due_date: task.dueDate,
+    priority: task.priority ?? 'medium',
+    notes: task.notes ?? '',
+    steps: task.steps ?? [],
+  });
 
-/**
- * INTEGRATION POINT — Tasks: Mark task as done
- * Replace mock return with: return request('PUT', `/api/tasks/${userId}/${taskId}`, { status: 'completed' });
- */
-export async function markTaskDone(userId, taskId) {
-  return { data: { status: 'completed' }, error: null };
-}
+export const markTaskDone = (taskId) =>
+  request('PUT', `/api/tasks/${taskId}/done`);
 
-/**
- * INTEGRATION POINT — Tasks: Delete a custom task
- * Replace mock return with: return request('DELETE', `/api/tasks/${userId}/${taskId}`);
- */
-export async function deleteTask(userId, taskId) {
-  return { data: { message: 'deleted' }, error: null };
-}
+export const deleteTask = (taskId) =>
+  request('DELETE', `/api/tasks/${taskId}`);
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
-/**
- * INTEGRATION POINT — Notifications: Fetch notifications
- * Replace mock return with: return request('GET', `/api/notifications/${userId}`);
- */
-export async function fetchNotifications(userId) {
-  return { data: null, error: null };
-}
+export const fetchNotifications = () => request('GET', '/api/notifications');
 
-/**
- * INTEGRATION POINT — Notifications: Mark notification read
- * Replace mock return with: return request('PUT', `/api/notifications/${userId}/${notifId}/read`);
- */
-export async function markNotificationRead(userId, notifId) {
-  return { data: { message: 'ok' }, error: null };
-}
+export const markNotificationRead = (notifId) =>
+  request('PUT', `/api/notifications/${notifId}/read`);
+
+export const markAllNotificationsRead = () =>
+  request('PUT', '/api/notifications/read-all');

@@ -1,42 +1,41 @@
-from fastapi import APIRouter
-from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskListResponse
+from fastapi import APIRouter, HTTPException, status, Depends
+from app.schemas.task import TaskCreate, TaskDoneResponse, TaskResponse, TaskListResponse
+from app.services import task_service, notification_service
+from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 
-@router.get("/{user_id}", response_model=TaskListResponse)
-async def list_tasks(user_id: str):
-    """
-    INTEGRATION POINT — Fetch all tasks for user
-    Supabase table: tasks, filtered by user_id
-    Returns tasks with real-time status computation.
-    """
-    return TaskListResponse(message="Task list placeholder", data=[])
+@router.get("", response_model=TaskListResponse)
+async def list_tasks(user: dict = Depends(get_current_user)):
+    tasks = await task_service.get_tasks(user["user_id"])
+    return TaskListResponse(message="ok", data=tasks)
 
 
-@router.post("/{user_id}", response_model=TaskResponse)
-async def create_task(user_id: str, payload: TaskCreate):
-    """
-    INTEGRATION POINT — Create custom task (from CustomTaskModal)
-    Supabase table: tasks, is_custom=True
-    """
-    return TaskResponse(message="Task create placeholder", data=payload.model_dump())
+@router.post("", response_model=TaskResponse)
+async def create_task(payload: TaskCreate, user: dict = Depends(get_current_user)):
+    try:
+        task = await task_service.create_task(user["user_id"], payload.model_dump())
+        return TaskResponse(message="Task created.", data=task)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.put("/{user_id}/{task_id}", response_model=TaskResponse)
-async def update_task(user_id: str, task_id: str, payload: TaskUpdate):
-    """
-    INTEGRATION POINT — Update task (mark done, update steps)
-    Triggered by TaskDetailPanel "Mark as Done" button.
-    Supabase table: tasks, set status='completed', completed_at=now()
-    """
-    return TaskResponse(message="Task update placeholder", data=payload.model_dump())
+@router.put("/{task_id}/done", response_model=TaskDoneResponse)
+async def mark_done(task_id: str, user: dict = Depends(get_current_user)):
+    try:
+        task = await task_service.mark_task_done(user["user_id"], task_id)
+        notif = await notification_service.create_completion_notification(
+            user["user_id"], task_id, task["name"]
+        )
+        return TaskDoneResponse(message="Task marked as done.", task=task, notification=notif)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@router.delete("/{user_id}/{task_id}", response_model=TaskResponse)
-async def delete_task(user_id: str, task_id: str):
-    """
-    INTEGRATION POINT — Delete a custom task
-    Supabase table: tasks, soft-delete or hard-delete by id
-    """
-    return TaskResponse(message="Task delete placeholder", data=None)
+@router.delete("/{task_id}", response_model=TaskResponse)
+async def delete_task(task_id: str, user: dict = Depends(get_current_user)):
+    await task_service.delete_task(user["user_id"], task_id)
+    return TaskResponse(message="Task deleted.")

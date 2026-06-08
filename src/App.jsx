@@ -17,10 +17,12 @@ import OnboardingTour from './components/OnboardingTour';
 import { businessTypeTasks, demoUserProfile } from './data/tasks';
 import { formatDate, computeTaskStatus, recomputeStatuses } from './utils/dates';
 import { loadState, saveState, STORAGE_KEY } from './utils/storage';
+import * as api from './utils/api';
 
 const initialProfile = { fullName: '', businessName: '', email: '', state: '', type: '' };
 
-function generateNotifications(taskList, profile) {
+// ─── Demo-only notification generator (no backend) ───────────────────────────
+function generateDemoNotifications(taskList, profile) {
   const now = Date.now();
   const notifs = [];
   taskList.filter(t => t.status === 'overdue').forEach((t, i) => {
@@ -65,78 +67,196 @@ function App() {
   const [notifications, setNotifications] = useState([]);
   const [toast, setToast] = useState(null);
   const [showCustomModal, setShowCustomModal] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
+  // ─── App startup — restore session ─────────────────────────────────────────
   useEffect(() => {
-    const saved = loadState();
-    if (saved) {
-      if (saved.currentScreen && saved.currentScreen !== 'loading') {
-        setCurrentScreen(saved.currentScreen);
+    const init = async () => {
+      const token = api.getToken();
+
+      if (token) {
+        // Try to restore real session from backend
+        const { data: meData, error: meError } = await api.getMe();
+
+        if (!meError && meData) {
+          if (!meData.has_profile) {
+            // Authenticated but onboarding not done
+            setCurrentScreen('tour');
+            setReady(true);
+            return;
+          }
+
+          // Fetch full profile + tasks + notifications
+          const { data: profileData, error: profileError } = await api.getProfile();
+
+          if (!profileError && profileData?.profile) {
+            setUserProfile(api.transformProfile(profileData.profile));
+            const transformedTasks = (profileData.tasks || []).map(api.transformTask);
+            setTasks(recomputeStatuses(transformedTasks));
+            const completed = transformedTasks.filter(t => t.status === 'completed');
+            setCompletedTasks(completed);
+            setCompletedThisMonth(completed.length);
+            setNotifications((profileData.notifications || []).map(api.transformNotification));
+            setCurrentScreen('dashboard');
+            setReady(true);
+            return;
+          }
+        }
+
+        // Token was invalid or expired — clear it
+        api.clearToken();
       }
-      if (saved.userProfile) setUserProfile(saved.userProfile);
-      if (saved.tasks) setTasks(recomputeStatuses(saved.tasks));
-      if (saved.completedTasks) setCompletedTasks(saved.completedTasks);
-      if (typeof saved.completedThisMonth === 'number') setCompletedThisMonth(saved.completedThisMonth);
-      if (saved.notifications) setNotifications(saved.notifications);
-    }
-    setReady(true);
+
+      // No token — check for saved demo state
+      const saved = loadState();
+      if (saved?.isDemoMode) {
+        setIsDemoMode(true);
+        if (saved.currentScreen && saved.currentScreen !== 'loading') {
+          setCurrentScreen(saved.currentScreen);
+        }
+        if (saved.userProfile) setUserProfile(saved.userProfile);
+        if (saved.tasks) setTasks(recomputeStatuses(saved.tasks));
+        if (saved.completedTasks) setCompletedTasks(saved.completedTasks);
+        if (typeof saved.completedThisMonth === 'number') setCompletedThisMonth(saved.completedThisMonth);
+        if (saved.notifications) setNotifications(saved.notifications);
+      }
+
+      setReady(true);
+    };
+
+    init();
   }, []);
 
+  // ─── Persist demo state to localStorage ────────────────────────────────────
   useEffect(() => {
-    if (!ready) return;
-    saveState({ currentScreen, userProfile, tasks, completedTasks, completedThisMonth, notifications });
-  }, [ready, currentScreen, userProfile, tasks, completedTasks, completedThisMonth, notifications]);
+    if (!ready || !isDemoMode) return;
+    saveState({ isDemoMode, currentScreen, userProfile, tasks, completedTasks, completedThisMonth, notifications });
+  }, [ready, isDemoMode, currentScreen, userProfile, tasks, completedTasks, completedThisMonth, notifications]);
 
+  // ─── Toast helper ───────────────────────────────────────────────────────────
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
+  // ─── Demo mode ──────────────────────────────────────────────────────────────
   const handleDemoLogin = () => {
     const taskList = recomputeStatuses(businessTypeTasks['Sole Trader']);
+    setIsDemoMode(true);
     setUserProfile(demoUserProfile);
     setTasks(taskList);
     setCompletedTasks([]);
     setCompletedThisMonth(0);
-    setNotifications(generateNotifications(taskList, demoUserProfile));
+    setNotifications(generateDemoNotifications(taskList, demoUserProfile));
     setCurrentScreen('dashboard');
   };
 
-  const handleLoginSuccess = () => setCurrentScreen('tour');
+  // ─── Real auth ──────────────────────────────────────────────────────────────
+  const handleLoginSuccess = async (email, password, setAuthError, setLoading) => {
+    const { data, error } = await api.login(email, password);
+    if (error) {
+      setAuthError(error);
+      setLoading(false);
+      return;
+    }
+    api.setToken(data.access_token);
+    setIsDemoMode(false);
 
+    if (data.is_new_user) {
+      // New user — send through onboarding
+      setCurrentScreen('tour');
+      setLoading(false);
+      return;
+    }
+
+    // Returning user — fetch their data
+    const { data: profileData, error: profileError } = await api.getProfile();
+    if (profileError || !profileData?.profile) {
+      // Authenticated but no profile yet
+      setCurrentScreen('tour');
+      setLoading(false);
+      return;
+    }
+
+    setUserProfile(api.transformProfile(profileData.profile));
+    const transformedTasks = (profileData.tasks || []).map(api.transformTask);
+    setTasks(recomputeStatuses(transformedTasks));
+    const completed = transformedTasks.filter(t => t.status === 'completed');
+    setCompletedTasks(completed);
+    setCompletedThisMonth(completed.length);
+    setNotifications((profileData.notifications || []).map(api.transformNotification));
+    setCurrentScreen('dashboard');
+    setLoading(false);
+  };
+
+  const handleRegisterSuccess = async (email, password, setAuthError, setLoading) => {
+    const { data, error } = await api.register(email, password);
+    if (error) {
+      setAuthError(error);
+      setLoading(false);
+      return;
+    }
+    api.setToken(data.access_token);
+    setIsDemoMode(false);
+    setCurrentScreen('tour');
+    setLoading(false);
+  };
+
+  // ─── Onboarding ─────────────────────────────────────────────────────────────
   const handleProfileContinue = (profileData) => {
     setUserProfile(prev => ({ ...prev, ...profileData }));
     setCurrentScreen('business-type');
   };
 
-  const handleBuildCalendar = (type) => {
+  const handleBuildCalendar = async (type) => {
     const taskList = recomputeStatuses(businessTypeTasks[type] || []);
     const updatedProfile = { ...userProfile, type };
     setUserProfile(updatedProfile);
-    setTasks(taskList);
+
+    if (isDemoMode) {
+      // Demo: stay local
+      setTasks(taskList);
+      setCompletedTasks([]);
+      setCompletedThisMonth(0);
+      setNotifications(generateDemoNotifications(taskList, updatedProfile));
+      setCurrentScreen('loading');
+      return;
+    }
+
+    // Real mode: save profile + seed tasks in one request
+    setCurrentScreen('loading');
+    const { data, error } = await api.saveProfile(updatedProfile, businessTypeTasks[type] || []);
+
+    if (error) {
+      showToast('Could not save your calendar. Try again.', 'error');
+      setCurrentScreen('business-type');
+      return;
+    }
+
+    const transformedTasks = (data.tasks || []).map(api.transformTask);
+    setTasks(recomputeStatuses(transformedTasks));
     setCompletedTasks([]);
     setCompletedThisMonth(0);
-    setNotifications(generateNotifications(taskList, updatedProfile));
-    setCurrentScreen('loading');
+    setNotifications((data.notifications || []).map(api.transformNotification));
   };
 
+  // ─── Task actions ────────────────────────────────────────────────────────────
   const handleOpenTask = (task) => setSelectedTask(task);
   const handleCloseTask = () => setSelectedTask(null);
 
-  const handleMarkDone = (taskId) => {
+  const handleMarkDone = async (taskId) => {
     const task = tasks.find(t => t.id === taskId);
-    if (task && task.status !== 'completed') {
+    if (!task || task.status === 'completed') {
+      setSelectedTask(null);
+      setCurrentScreen('confirmation');
+      return;
+    }
+
+    if (isDemoMode) {
       const completedAt = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
-      const completed = {
-        ...task,
-        status: 'completed',
-        completedAt,
-      };
+      const completed = { ...task, status: 'completed', completedAt };
       setCompletedTasks(prev => [completed, ...prev]);
-      setTasks(prev => prev.map(t => (
-        t.id === taskId
-          ? { ...t, status: 'completed', completedAt }
-          : t
-      )));
+      setTasks(prev => prev.map(t => t.id === taskId ? completed : t));
       setNotifications(prev => [{
         id: `done-${taskId}-${Date.now()}`,
         type: 'completed',
@@ -146,28 +266,63 @@ function App() {
         read: false,
       }, ...prev]);
       setCompletedThisMonth(prev => prev + 1);
+    } else {
+      const { data, error } = await api.markTaskDone(taskId);
+      if (error) {
+        showToast('Could not update task. Try again.', 'error');
+        setSelectedTask(null);
+        return;
+      }
+      const updatedTask = api.transformTask(data.task);
+      setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+      setCompletedTasks(prev => [updatedTask, ...prev]);
+      setCompletedThisMonth(prev => prev + 1);
+      if (data.notification) {
+        setNotifications(prev => [api.transformNotification(data.notification), ...prev]);
+      }
     }
+
     setSelectedTask(null);
     setCurrentScreen('confirmation');
   };
 
-  const handleAddCustomTask = (data) => {
-    const task = {
-      id: `custom-${Date.now()}`,
-      name: data.name,
-      description: data.notes || 'Custom compliance task',
-      dueDate: data.dueDate,
-      steps: ['Review requirements', 'Complete the action', 'Confirm and file'],
-      status: computeTaskStatus(data.dueDate),
-      priority: data.priority,
-      isCustom: true,
-    };
-    setTasks(prev => [task, ...prev]);
+  const handleAddCustomTask = async (data) => {
+    if (isDemoMode) {
+      const task = {
+        id: `custom-${Date.now()}`,
+        name: data.name,
+        description: data.notes || 'Custom compliance task',
+        dueDate: data.dueDate,
+        steps: ['Review requirements', 'Complete the action', 'Confirm and file'],
+        status: computeTaskStatus(data.dueDate),
+        priority: data.priority,
+        isCustom: true,
+      };
+      setTasks(prev => [task, ...prev]);
+    } else {
+      const { data: created, error } = await api.createTask({
+        name: data.name,
+        dueDate: data.dueDate,
+        priority: data.priority,
+        notes: data.notes,
+      });
+      if (error) {
+        showToast('Could not add task. Try again.', 'error');
+        return;
+      }
+      setTasks(prev => [api.transformTask(created.data), ...prev]);
+    }
+
     setShowCustomModal(false);
     showToast('Task added to your calendar');
   };
 
-  const handleLogout = () => {
+  // ─── Logout ──────────────────────────────────────────────────────────────────
+  const handleLogout = async () => {
+    if (!isDemoMode) {
+      await api.logout();
+      api.clearToken();
+    }
     setCurrentScreen('login');
     setUserProfile(initialProfile);
     setTasks([]);
@@ -175,11 +330,18 @@ function App() {
     setSelectedTask(null);
     setCompletedThisMonth(0);
     setNotifications([]);
+    setIsDemoMode(false);
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
   };
 
+  // ─── Notifications ────────────────────────────────────────────────────────────
   const unreadCount = notifications.filter(n => !n.read).length;
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+
+  const markAllRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (!isDemoMode) await api.markAllNotificationsRead();
+  };
+
   const pendingTasks = tasks.filter(t => t.status !== 'completed');
 
   if (!ready) return null;
@@ -193,7 +355,11 @@ function App() {
       )}
 
       {currentScreen === 'login' && (
-        <LoginScreen onLoginSuccess={handleLoginSuccess} onDemoLogin={handleDemoLogin} />
+        <LoginScreen
+          onLoginSuccess={handleLoginSuccess}
+          onRegisterSuccess={handleRegisterSuccess}
+          onDemoLogin={handleDemoLogin}
+        />
       )}
       {currentScreen === 'profile' && (
         <BusinessProfileForm

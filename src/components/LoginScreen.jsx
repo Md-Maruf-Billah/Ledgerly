@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { ArrowRightIcon } from './Icons';
 
-const DEMO_EMAIL = 'demo@ledgerly.com';
-const DEMO_PASSWORD = 'password123';
 const SIDE_IMAGE = 'https://picsum.photos/seed/ledgerly-calm-desk/1200/900';
 
-function LoginScreen({ onLoginSuccess, onDemoLogin }) {
+function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
+  const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -17,25 +16,32 @@ function LoginScreen({ onLoginSuccess, onDemoLogin }) {
     setAuthError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const nextErrors = {};
     if (!form.email.trim()) nextErrors.email = 'Email is required.';
     if (!form.password) nextErrors.password = 'Password is required.';
+    if (mode === 'signup' && form.password.length < 6)
+      nextErrors.password = 'Password must be at least 6 characters.';
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
     }
 
     setLoading(true);
-    setTimeout(() => {
-      if (form.email === DEMO_EMAIL && form.password === DEMO_PASSWORD) {
-        onLoginSuccess();
-      } else {
-        setLoading(false);
-        setAuthError('Incorrect email or password. Try the demo credentials below.');
-      }
-    }, 700);
+    setAuthError('');
+
+    if (mode === 'signup') {
+      onRegisterSuccess(form.email, form.password, setAuthError, () => setLoading(false));
+    } else {
+      onLoginSuccess(form.email, form.password, setAuthError, () => setLoading(false));
+    }
+  };
+
+  const switchMode = () => {
+    setMode(m => (m === 'signin' ? 'signup' : 'signin'));
+    setErrors({});
+    setAuthError('');
   };
 
   return (
@@ -63,8 +69,14 @@ function LoginScreen({ onLoginSuccess, onDemoLogin }) {
 
         <div className="simple-login-panel">
           <div className="login-card simple-login-card fade-in">
-            <h2 className="login-form-heading">Sign in</h2>
-            <p className="subtitle">Access your compliance calendar.</p>
+            <h2 className="login-form-heading">
+              {mode === 'signin' ? 'Sign in' : 'Create account'}
+            </h2>
+            <p className="subtitle">
+              {mode === 'signin'
+                ? 'Access your compliance calendar.'
+                : 'Set up your free Ledgerly account.'}
+            </p>
 
             <form onSubmit={handleSubmit} className="login-form" noValidate>
               <label className="login-label">
@@ -74,7 +86,7 @@ function LoginScreen({ onLoginSuccess, onDemoLogin }) {
                   className={`login-input${errors.email ? ' input-error' : ''}`}
                   value={form.email}
                   onChange={e => handleChange('email', e.target.value)}
-                  placeholder="demo@ledgerly.com"
+                  placeholder="you@example.com"
                   autoComplete="email"
                   disabled={loading}
                 />
@@ -88,8 +100,8 @@ function LoginScreen({ onLoginSuccess, onDemoLogin }) {
                   className={`login-input${errors.password ? ' input-error' : ''}`}
                   value={form.password}
                   onChange={e => handleChange('password', e.target.value)}
-                  placeholder="password123"
-                  autoComplete="current-password"
+                  placeholder={mode === 'signup' ? 'At least 6 characters' : '••••••••'}
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   disabled={loading}
                 />
                 {errors.password && <small className="error-text">{errors.password}</small>}
@@ -105,10 +117,17 @@ function LoginScreen({ onLoginSuccess, onDemoLogin }) {
                 disabled={loading}
               >
                 {loading
-                  ? <><span className="btn-spinner" aria-hidden="true" /> Signing in</>
-                  : <><ArrowRightIcon size={16} /> Sign in</>}
+                  ? <><span className="btn-spinner" aria-hidden="true" /> {mode === 'signin' ? 'Signing in…' : 'Creating account…'}</>
+                  : <><ArrowRightIcon size={16} /> {mode === 'signin' ? 'Sign in' : 'Create account'}</>}
               </button>
             </form>
+
+            <p className="login-switch-mode">
+              {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}
+              <button type="button" className="link-btn" onClick={switchMode} disabled={loading}>
+                {mode === 'signin' ? 'Sign up' : 'Sign in'}
+              </button>
+            </p>
 
             <div className="login-divider"><span>or</span></div>
 
@@ -117,7 +136,7 @@ function LoginScreen({ onLoginSuccess, onDemoLogin }) {
             </button>
 
             <p className="demo-hint">
-              Demo: <span>{DEMO_EMAIL}</span> / <span>{DEMO_PASSWORD}</span>
+              Explore Ledgerly with sample data — no account needed.
             </p>
           </div>
         </div>

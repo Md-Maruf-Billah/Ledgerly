@@ -1,22 +1,20 @@
 from pydantic import BaseModel
 from typing import Any, List
-from datetime import date
 
 
 class TaskCreate(BaseModel):
     name: str
-    description: str | None = None
-    due_date: date
-    priority: str = "medium"  # high | medium | low
+    due_date: str          # ISO date string, e.g. "2026-07-15"
+    priority: str = "medium"
     notes: str | None = None
+    description: str | None = None
     steps: List[str] = []
-    is_custom: bool = True
 
 
-class TaskUpdate(BaseModel):
-    status: str | None = None  # overdue | due-soon | upcoming | completed
-    steps_completed: List[str] | None = None
-    completed_at: str | None = None
+class TaskDoneResponse(BaseModel):
+    message: str
+    task: Any = None
+    notification: Any = None
 
 
 class TaskResponse(BaseModel):
