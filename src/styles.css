@@ -4429,6 +4429,32 @@ body {
     0 10px 22px rgba(112,54,24,0.18);
 }
 
+/* ── Google Sign-In button ──────────────────────────────────────────── */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 10px;
+  border: 1.5px solid oklch(88% 0.01 76);
+  background: #fff;
+  color: oklch(22% 0.02 52);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  min-height: 44px;
+}
+.btn-google:hover:not(:disabled) {
+  background: oklch(98% 0.005 76);
+  border-color: oklch(80% 0.02 76);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+.btn-google:disabled { opacity: 0.55; cursor: not-allowed; }
+
 .simple-login-card .btn-secondary,
 .btn-secondary {
   background:
