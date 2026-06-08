@@ -11,9 +11,23 @@
 
 import { sanitizeText, isValidISODate } from './sanitize.js';
 
-// Empty string = relative URL → works on any domain without env vars.
-// For local dev, set VITE_API_BASE_URL=http://localhost:8000 in .env.local
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+// Resolve the API base URL.
+// - If VITE_API_BASE_URL is set to a localhost address but the page is
+//   served over HTTPS (i.e. production), the browser blocks the request
+//   as mixed content and fetch() throws. Guard against that by falling
+//   back to '' (relative URL = same domain) in that case.
+// - Empty string → relative URL → always resolves to the current domain.
+// - For local dev, .env.local sets VITE_API_BASE_URL=http://localhost:8000.
+const _configuredBase = import.meta.env.VITE_API_BASE_URL ?? '';
+const BASE_URL =
+  _configuredBase.startsWith('http://') &&
+  typeof window !== 'undefined' &&
+  window.location.protocol === 'https:'
+    ? ''   // localhost over HTTPS = mixed content → use relative URL
+    : _configuredBase;
+if (import.meta.env.DEV || BASE_URL !== _configuredBase) {
+  console.info('[api] BASE_URL =', BASE_URL || '(relative)');
+}
 const TOKEN_KEY = 'ledgerly_token';
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
