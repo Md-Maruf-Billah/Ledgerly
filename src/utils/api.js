@@ -1,7 +1,15 @@
 /**
- * Ledgerly API client — connects to the FastAPI backend.
- * All functions return { data, error }.
+ * Ledgerly API client.
+ *
+ * [Security] All requests include:
+ *   - Authorization: Bearer <token>  (server validates this — client header is convenience)
+ *   - X-Request-ID                   (UUID for correlating frontend errors with backend logs)
+ *
+ * [Security] 401 responses fire a 'ledgerly:unauthorized' event so App.jsx
+ * can clear state and redirect to login — expired tokens never silently fail.
  */
+
+import { sanitizeText, isValidISODate } from './sanitize.js';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 const TOKEN_KEY = 'ledgerly_token';
@@ -9,10 +17,11 @@ const TOKEN_KEY = 'ledgerly_token';
 // ─── Token helpers ────────────────────────────────────────────────────────────
 
 export function getToken() {
-  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
+  try { return localStorage.getItem(TOKEN_KEY) || null; } catch { return null; }
 }
 
 export function setToken(token) {
+  if (!token || token === 'null') return; // [Security] never store null string
   try { localStorage.setItem(TOKEN_KEY, token); } catch {}
 }
 
@@ -20,11 +29,20 @@ export function clearToken() {
   try { localStorage.removeItem(TOKEN_KEY); } catch {}
 }
 
+function newRequestId() {
+  return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+}
+
 // ─── Core request ─────────────────────────────────────────────────────────────
 
 async function request(method, path, body) {
   const token = getToken();
-  const headers = { 'Content-Type': 'application/json' };
+  const requestId = newRequestId();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Request-ID': requestId,
+  };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   try {
@@ -33,27 +51,38 @@ async function request(method, path, body) {
       headers,
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
+
+    // [Security] 401 means token expired or invalid — fire event, let App handle it
+    if (res.status === 401) {
+      window.dispatchEvent(new CustomEvent('ledgerly:unauthorized', {
+        detail: { requestId, path },
+      }));
+      return { data: null, error: 'Your session has expired. Please sign in again.' };
+    }
+
     const data = await res.json();
     if (!res.ok) return { data: null, error: data?.detail ?? 'Request failed.' };
     return { data, error: null };
   } catch (err) {
-    return { data: null, error: err.message };
+    // Network error — don't expose raw browser error message to UI
+    console.error(`[api] ${method} ${path} failed`, err);
+    return { data: null, error: 'Could not reach the server. Check your connection.' };
   }
 }
 
 // ─── Data transformers ────────────────────────────────────────────────────────
-// Backend uses snake_case; frontend uses camelCase.
+// [Security] Sanitize user-provided strings coming FROM the backend before
+// rendering — defence-in-depth in case backend storage was compromised.
 
 export function transformTask(t) {
   return {
     id: t.id,
-    name: t.name,
-    description: t.description ?? '',
-    dueDate: t.due_date,
+    name: sanitizeText(t.name ?? '', 200),
+    description: sanitizeText(t.description ?? '', 500),
+    dueDate: isValidISODate(t.due_date) ? t.due_date : '',
     status: t.status,
-    // Steps are stored as [{label, done}] in DB; frontend needs ["label", ...]
     steps: Array.isArray(t.steps)
-      ? t.steps.map(s => (typeof s === 'string' ? s : s.label))
+      ? t.steps.map(s => sanitizeText(typeof s === 'string' ? s : s.label, 300))
       : [],
     isCustom: t.is_custom ?? false,
     priority: t.priority ?? 'medium',
@@ -69,8 +98,8 @@ export function transformNotification(n) {
   return {
     id: n.id,
     type: n.type,
-    title: n.title,
-    body: n.body,
+    title: sanitizeText(n.title ?? '', 200),
+    body: sanitizeText(n.body ?? '', 500),
     timestamp: new Date(n.created_at).getTime(),
     read: n.is_read,
   };
@@ -78,11 +107,11 @@ export function transformNotification(n) {
 
 export function transformProfile(p) {
   return {
-    fullName: p.full_name,
-    businessName: p.business_name,
-    email: p.email,
-    state: p.state,
-    type: p.business_type,
+    fullName: sanitizeText(p.full_name ?? '', 100),
+    businessName: sanitizeText(p.business_name ?? '', 120),
+    email: p.email ?? '',
+    state: p.state ?? '',
+    type: p.business_type ?? '',
   };
 }
 
@@ -100,15 +129,10 @@ export const register = (email, password) =>
 
 export const logout = () => request('POST', '/api/auth/logout');
 
-/** Validate a stored token — returns user info or error. */
 export const getMe = () => request('GET', '/api/auth/me');
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
-/**
- * Called at the end of onboarding. Sends profile + seed task list in one request.
- * Returns { profile, tasks, notifications }.
- */
 export const saveProfile = (profileData, taskList) =>
   request('POST', '/api/profile', {
     full_name: profileData.fullName,
@@ -119,9 +143,6 @@ export const saveProfile = (profileData, taskList) =>
     tasks: taskList,
   });
 
-/**
- * Restore session — fetches profile + tasks + notifications for a returning user.
- */
 export const getProfile = () => request('GET', '/api/profile/me');
 
 // ─── Tasks ────────────────────────────────────────────────────────────────────

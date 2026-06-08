@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import LoginScreen from './components/LoginScreen';
 import BusinessProfileForm from './components/BusinessProfileForm';
 import BusinessTypeSelector from './components/BusinessTypeSelector';
@@ -68,6 +68,34 @@ function App() {
   const [toast, setToast] = useState(null);
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // ─── [Security] Global 401 listener — expired token → auto logout ──────────
+  const handleLogout = useCallback(async () => {
+    if (!isDemoMode) {
+      await api.logout();
+      api.clearToken();
+    }
+    setCurrentScreen('login');
+    setUserProfile(initialProfile);
+    setTasks([]);
+    setCompletedTasks([]);
+    setSelectedTask(null);
+    setCompletedThisMonth(0);
+    setNotifications([]);
+    setIsDemoMode(false);
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  }, [isDemoMode]);
+
+  useEffect(() => {
+    const onUnauthorized = () => {
+      api.clearToken();
+      handleLogout();
+      setToast({ message: 'Your session expired. Please sign in again.', type: 'error' });
+      setTimeout(() => setToast(null), 4000);
+    };
+    window.addEventListener('ledgerly:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('ledgerly:unauthorized', onUnauthorized);
+  }, [handleLogout]);
 
   // ─── App startup — restore session ─────────────────────────────────────────
   useEffect(() => {
@@ -322,22 +350,7 @@ function App() {
     showToast('Task added to your calendar');
   };
 
-  // ─── Logout ──────────────────────────────────────────────────────────────────
-  const handleLogout = async () => {
-    if (!isDemoMode) {
-      await api.logout();
-      api.clearToken();
-    }
-    setCurrentScreen('login');
-    setUserProfile(initialProfile);
-    setTasks([]);
-    setCompletedTasks([]);
-    setSelectedTask(null);
-    setCompletedThisMonth(0);
-    setNotifications([]);
-    setIsDemoMode(false);
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
-  };
+  // handleLogout is defined above with useCallback (needed by 401 listener)
 
   // ─── Notifications ────────────────────────────────────────────────────────────
   const unreadCount = notifications.filter(n => !n.read).length;

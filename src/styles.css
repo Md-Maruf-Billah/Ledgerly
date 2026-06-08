@@ -5526,3 +5526,28 @@ select:focus,
   .panel-header         { gap: 0.5rem; }
   .panel-header-right   { gap: 0.3rem; }
 }
+
+/* ── Error boundary fallback screen ─────────────────────────────── */
+.error-boundary-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: #f7f5f3;
+  padding: 1.5rem;
+}
+.error-boundary-card {
+  background: #ffffff;
+  border: 1px solid #e8e4e0;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.error-boundary-card h2 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.error-boundary-card p  { font-size: 0.9rem; color: #666; margin: 0 0 0.5rem; line-height: 1.55; }
+.error-boundary-card .btn { margin-top: 0.25rem; }

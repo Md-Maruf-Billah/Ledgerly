@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { sanitizeText, isValidISODate, isDateInRange } from '../utils/sanitize.js';
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -38,10 +39,26 @@ function CustomTaskModal({ onSave, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const nextErrors = {};
-    if (!form.name.trim()) nextErrors.name = 'Task name is required.';
-    if (!form.dueDate) nextErrors.dueDate = 'Due date is required.';
+
+    // [Security] Client-side validation — server validates again independently
+    const cleanName = sanitizeText(form.name, 200);
+    if (!cleanName) nextErrors.name = 'Task name is required.';
+    else if (cleanName.length > 200) nextErrors.name = 'Task name is too long (max 200 characters).';
+
+    if (!form.dueDate) {
+      nextErrors.dueDate = 'Due date is required.';
+    } else if (!isValidISODate(form.dueDate)) {
+      nextErrors.dueDate = 'Please enter a valid date.';
+    } else if (!isDateInRange(form.dueDate)) {
+      nextErrors.dueDate = 'Date must be within a reasonable range.';
+    }
+
+    if (form.notes && form.notes.length > 1000) {
+      nextErrors.notes = 'Notes cannot exceed 1000 characters.';
+    }
+
     if (Object.keys(nextErrors).length > 0) { setErrors(nextErrors); return; }
-    onSave(form);
+    onSave({ ...form, name: cleanName });
   };
 
   const handleBackdrop = (e) => {
@@ -101,12 +118,14 @@ function CustomTaskModal({ onSave, onClose }) {
           <label className="modal-label">
             Notes <span className="modal-optional">(optional)</span>
             <textarea
-              className="modal-textarea"
+              className={`modal-textarea${errors.notes ? ' input-error' : ''}`}
               value={form.notes}
               onChange={e => handleChange('notes', e.target.value)}
               placeholder="Any additional context..."
               rows={3}
+              maxLength={1000}
             />
+            {errors.notes && <small className="error-text">{errors.notes}</small>}
           </label>
 
           <div className="modal-actions">
