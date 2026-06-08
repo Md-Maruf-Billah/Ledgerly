@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { extractOAuthToken } from './utils/googleAuth';
 import LoginScreen from './components/LoginScreen';
 import BusinessProfileForm from './components/BusinessProfileForm';
 import BusinessTypeSelector from './components/BusinessTypeSelector';
@@ -104,11 +103,6 @@ function App() {
   // ─── App startup — restore session ─────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
-      // Handle Google OAuth redirect: Supabase puts access_token in URL hash.
-      // Extract it first, store it, then continue with the normal flow.
-      const oauthToken = extractOAuthToken();
-      if (oauthToken) api.setToken(oauthToken);
-
       const token = api.getToken();
 
       if (token) {
