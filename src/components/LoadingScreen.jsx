@@ -1,13 +1,19 @@
 import React, { useEffect } from 'react';
 
-function LoadingScreen({ onComplete }) {
+function LoadingScreen({ onComplete, ready = true }) {
   useEffect(() => {
+    if (!ready) return undefined;
     const timer = setTimeout(onComplete, 1500);
     return () => clearTimeout(timer);
-  }, [onComplete]);
+  }, [onComplete, ready]);
 
   return (
-    <div className="loading-screen" role="status" aria-live="polite" aria-label="Building your compliance calendar">
+    <div
+      className={`loading-screen${ready ? ' loading-screen--ready' : ''}`}
+      role="status"
+      aria-live="polite"
+      aria-label="Building your compliance calendar"
+    >
       <div className="loading-content fade-in">
         <div className="loading-logo" aria-hidden="true">
           <div className="loading-logo-grid">
@@ -15,7 +21,9 @@ function LoadingScreen({ onComplete }) {
           </div>
         </div>
         <h1 className="loading-title">Ledgerly</h1>
-        <p className="loading-message">Building your compliance calendar&hellip;</p>
+        <p className="loading-message">
+          {ready ? 'Calendar ready. Opening your timeline...' : 'Building your compliance calendar...'}
+        </p>
         <div className="loading-skeleton" aria-hidden="true">
           <span className="loading-skeleton-line loading-skeleton-line--wide" />
           <span className="loading-skeleton-line" />

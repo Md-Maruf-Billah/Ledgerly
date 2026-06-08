@@ -30,7 +30,18 @@ export function clearToken() {
 }
 
 function newRequestId() {
-  return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `req-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+async function readResponseData(res) {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { detail: text };
+  }
 }
 
 // ─── Core request ─────────────────────────────────────────────────────────────
@@ -52,15 +63,21 @@ async function request(method, path, body) {
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
 
-    // [Security] 401 means token expired or invalid — fire event, let App handle it
+    const data = await readResponseData(res);
+
+    // [Security] 401 with an existing token means the session expired.
+    // A failed login also returns 401, but should stay inside LoginScreen.
     if (res.status === 401) {
-      window.dispatchEvent(new CustomEvent('ledgerly:unauthorized', {
-        detail: { requestId, path },
-      }));
-      return { data: null, error: 'Your session has expired. Please sign in again.' };
+      const isAuthAttempt = path === '/api/auth/login' || path === '/api/auth/register';
+      if (token && !isAuthAttempt) {
+        window.dispatchEvent(new CustomEvent('ledgerly:unauthorized', {
+          detail: { requestId, path },
+        }));
+        return { data: null, error: 'Your session has expired. Please sign in again.' };
+      }
+      return { data: null, error: data?.detail ?? 'Incorrect email or password.' };
     }
 
-    const data = await res.json();
     if (!res.ok) return { data: null, error: data?.detail ?? 'Request failed.' };
     return { data, error: null };
   } catch (err) {
@@ -95,12 +112,13 @@ export function transformTask(t) {
 }
 
 export function transformNotification(n) {
+  const timestamp = Date.parse(n.created_at);
   return {
     id: n.id,
     type: n.type,
     title: sanitizeText(n.title ?? '', 200),
     body: sanitizeText(n.body ?? '', 500),
-    timestamp: new Date(n.created_at).getTime(),
+    timestamp: Number.isFinite(timestamp) ? timestamp : Date.now(),
     read: n.is_read,
   };
 }

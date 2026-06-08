@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sanitizeText, isValidISODate, isDateInRange } from '../utils/sanitize.js';
 
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return local.toISOString().split('T')[0];
+};
 
 const FOCUSABLE = 'button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
 

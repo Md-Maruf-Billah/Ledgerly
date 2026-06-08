@@ -26,18 +26,30 @@ export function sanitizeText(value, maxLength = 200) {
  * Validate an ISO date string (YYYY-MM-DD).
  * Returns true if valid, false otherwise.
  */
+function parseISODate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return date;
+}
+
 export function isValidISODate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const d = new Date(value);
-  return !isNaN(d.getTime());
+  return parseISODate(value) !== null;
 }
 
 /**
  * Validate that a date string is not more than 5 years in the future.
  */
 export function isDateInRange(value) {
-  if (!isValidISODate(value)) return false;
-  const d = new Date(value);
+  const d = parseISODate(value);
+  if (!d) return false;
   const max = new Date();
   max.setFullYear(max.getFullYear() + 5);
   const min = new Date();

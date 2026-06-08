@@ -31,6 +31,10 @@ function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSumma
             <p className="subtitle">Welcome back, {userProfile.fullName?.split(' ')[0] || 'there'}.</p>
           </div>
           <div className="dash-actions">
+            <button className="dashboard-add-btn" type="button" onClick={onAddTask}>
+              <PlusIcon size={15} />
+              Add task
+            </button>
             <button className="icon-btn" type="button" onClick={onOpenCalendar} aria-label="Open calendar">
               <CalendarIcon size={18} />
             </button>

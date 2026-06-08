@@ -1,5 +1,20 @@
+function parseLocalISODate(isoDate) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate || '')) return null;
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return date;
+}
+
 export function computeTaskStatus(isoDate) {
-  const due = new Date(isoDate + 'T00:00:00');
+  const due = parseLocalISODate(isoDate);
+  if (!due) return 'upcoming';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = Math.round((due - today) / 86400000);
@@ -17,13 +32,16 @@ export function recomputeStatuses(taskList) {
 }
 
 export function formatDate(isoStr) {
-  return new Date(isoStr + 'T00:00:00').toLocaleDateString('en-AU', {
+  const date = parseLocalISODate(isoStr);
+  if (!date) return 'No date set';
+  return date.toLocaleDateString('en-AU', {
     day: 'numeric', month: 'short', year: 'numeric',
   });
 }
 
 export function getDaysLeft(isoDate) {
-  const due = new Date(isoDate + 'T00:00:00');
+  const due = parseLocalISODate(isoDate);
+  if (!due) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return Math.round((due - today) / 86400000);

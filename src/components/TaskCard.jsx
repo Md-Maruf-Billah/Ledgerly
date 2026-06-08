@@ -3,6 +3,7 @@ import { formatDate, getDaysLeft } from '../utils/dates';
 
 function urgencyLabel(task) {
   const days = getDaysLeft(task.dueDate);
+  if (days === null) return null;
   if (days < 0) return `${Math.abs(days)}d overdue`;
   if (days === 0) return 'Due today';
   if (days === 1) return '1 day left';
@@ -19,21 +20,30 @@ const statusLabel = {
 
 function TaskCard({ task, onOpen, index = 0 }) {
   const isCompleted = task.status === 'completed';
+  const steps = Array.isArray(task.steps) ? task.steps : [];
   const label = isCompleted ? null : urgencyLabel(task);
   const days = getDaysLeft(task.dueDate);
-  const urgencyHint = isCompleted ? 'completed' : days < 0 ? `${Math.abs(days)} days overdue` : days === 0 ? 'due today' : `${days} days remaining`;
+  const urgencyHint = isCompleted
+    ? 'completed'
+    : days === null
+    ? 'no due date set'
+    : days < 0
+    ? `${Math.abs(days)} days overdue`
+    : days === 0
+    ? 'due today'
+    : `${days} days remaining`;
 
   return (
     <button
       className={`task-card fade-in-task task-card--${task.status}`}
       style={{ '--stagger-delay': `${index * 45}ms` }}
       onClick={() => onOpen(task)}
-      aria-label={`${task.name}, ${urgencyHint}. ${task.steps.length} steps.`}
+      aria-label={`${task.name}, ${urgencyHint}. ${steps.length} steps.`}
     >
       <div className="task-card-body">
         <h4>{task.name}</h4>
         <p>Due: {formatDate(task.dueDate)}</p>
-        <small>{isCompleted && task.completedAt ? `Completed ${task.completedAt}` : `${task.steps.length} steps`}</small>
+        <small>{isCompleted && task.completedAt ? `Completed ${task.completedAt}` : `${steps.length} steps`}</small>
         {label && (
           <span className={`urgency-tag urgency-${task.status}`} aria-hidden="true">{label}</span>
         )}

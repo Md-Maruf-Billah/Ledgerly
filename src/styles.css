@@ -5885,3 +5885,83 @@ body {
   border: none !important;
   box-shadow: none !important;
 }
+
+/* Final usability layer */
+.dashboard-add-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0 0.9rem;
+  border: 1px solid oklch(55% 0.16 47);
+  border-radius: 12px;
+  background: oklch(66% 0.19 47);
+  color: oklch(99% 0.008 76);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 160ms var(--ease-out), filter 160ms var(--ease-out), background 160ms var(--ease-out);
+}
+
+.dashboard-add-btn svg {
+  flex-shrink: 0;
+}
+
+.dashboard-add-btn:active {
+  transform: scale(0.97);
+}
+
+.loading-bar-fill {
+  width: 42%;
+  transform: translateX(-115%);
+  animation: loadingIndeterminate 1.2s var(--ease-out) infinite !important;
+}
+
+.loading-screen--ready .loading-bar-fill {
+  width: 100%;
+  transform: scaleX(1);
+  animation: none !important;
+}
+
+@keyframes loadingIndeterminate {
+  from { transform: translateX(-115%); }
+  to { transform: translateX(245%); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dashboard-add-btn:hover {
+    filter: brightness(0.96);
+  }
+}
+
+@media (max-width: 700px) {
+  .dash-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start !important;
+    gap: 0.5rem;
+  }
+
+  .dashboard-add-btn {
+    flex: 1 1 100%;
+  }
+
+  .dash-actions .icon-btn {
+    flex: 1 1 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-add-btn,
+  .loading-bar-fill {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .loading-bar-fill {
+    width: 100%;
+    transform: scaleX(1);
+  }
+}

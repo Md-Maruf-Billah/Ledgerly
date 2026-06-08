@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ArrowLeftIcon } from './Icons';
 
 const getInitials = (name) => {
   if (!name?.trim()) return '?';
@@ -50,7 +51,9 @@ function SettingsScreen({ profile, onBack, onLogout, onToast }) {
   return (
     <section className="screen fade-in">
       <div className="settings-card">
-        <button className="btn btn-secondary back-btn" onClick={onBack}>&larr; Back to Dashboard</button>
+        <button type="button" className="btn btn-secondary back-btn" onClick={onBack}>
+          <ArrowLeftIcon size={16} /> Back to Dashboard
+        </button>
 
         <h2>Profile &amp; Settings</h2>
 

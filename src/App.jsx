@@ -68,13 +68,15 @@ function App() {
   const [toast, setToast] = useState(null);
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [calendarBuildReady, setCalendarBuildReady] = useState(false);
 
   // ─── [Security] Global 401 listener — expired token → auto logout ──────────
   const handleLogout = useCallback(async () => {
-    if (!isDemoMode) {
+    const token = api.getToken();
+    if (!isDemoMode && token) {
       await api.logout();
-      api.clearToken();
     }
+    api.clearToken();
     setCurrentScreen('login');
     setUserProfile(initialProfile);
     setTasks([]);
@@ -83,6 +85,7 @@ function App() {
     setCompletedThisMonth(0);
     setNotifications([]);
     setIsDemoMode(false);
+    setCalendarBuildReady(false);
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
   }, [isDemoMode]);
 
@@ -225,7 +228,7 @@ function App() {
       return;
     }
     if (!data.access_token) {
-      setAuthError('Account created — please check your email and confirm your account, then sign in.');
+      setAuthError('Account created. Please check your email and confirm your account, then sign in.');
       setLoading(false);
       return;
     }
@@ -245,6 +248,8 @@ function App() {
     const taskList = recomputeStatuses(businessTypeTasks[type] || []);
     const updatedProfile = { ...userProfile, type };
     setUserProfile(updatedProfile);
+    setCalendarBuildReady(false);
+    setCurrentScreen('loading');
 
     if (isDemoMode) {
       // Demo: stay local
@@ -252,25 +257,26 @@ function App() {
       setCompletedTasks([]);
       setCompletedThisMonth(0);
       setNotifications(generateDemoNotifications(taskList, updatedProfile));
-      setCurrentScreen('loading');
+      setCalendarBuildReady(true);
       return;
     }
 
     // Real mode: save profile + seed tasks in one request
-    setCurrentScreen('loading');
     const { data, error } = await api.saveProfile(updatedProfile, businessTypeTasks[type] || []);
 
     if (error) {
+      setCalendarBuildReady(false);
       showToast('Could not save your calendar. Try again.', 'error');
       setCurrentScreen('business-type');
       return;
     }
 
-    const transformedTasks = (data.tasks || []).map(api.transformTask);
+    const transformedTasks = (data?.tasks || []).map(api.transformTask);
     setTasks(recomputeStatuses(transformedTasks));
     setCompletedTasks([]);
     setCompletedThisMonth(0);
-    setNotifications((data.notifications || []).map(api.transformNotification));
+    setNotifications((data?.notifications || []).map(api.transformNotification));
+    setCalendarBuildReady(true);
   };
 
   // ─── Task actions ────────────────────────────────────────────────────────────
@@ -410,7 +416,13 @@ function App() {
         />
       )}
       {currentScreen === 'loading' && (
-        <LoadingScreen onComplete={() => setCurrentScreen('welcome')} />
+        <LoadingScreen
+          ready={calendarBuildReady}
+          onComplete={() => {
+            setCalendarBuildReady(false);
+            setCurrentScreen('welcome');
+          }}
+        />
       )}
       {currentScreen === 'welcome' && (
         <WelcomeScreen

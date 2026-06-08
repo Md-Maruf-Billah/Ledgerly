@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeftIcon, ArrowRightIcon } from './Icons';
+import { isValidEmail } from '../utils/sanitize.js';
 
 const states = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'];
 
@@ -23,6 +24,7 @@ function BusinessProfileForm({ initialData, onContinue, onBack }) {
     if (!form.fullName.trim()) nextErrors.fullName = 'Full name is required.';
     if (!form.businessName.trim()) nextErrors.businessName = 'Business name is required.';
     if (!form.email.trim()) nextErrors.email = 'Email address is required.';
+    else if (!isValidEmail(form.email)) nextErrors.email = 'Enter a valid email address.';
     if (!form.state) nextErrors.state = 'Please select your state.';
 
     if (Object.keys(nextErrors).length > 0) {

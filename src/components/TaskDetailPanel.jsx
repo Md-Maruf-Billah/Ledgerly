@@ -51,12 +51,16 @@ function TaskDetailPanel({ task, onClose, onMarkDone }) {
   const [checked, setChecked] = useState([]);
 
   useEffect(() => {
-    if (task) setChecked(new Array(task.steps.length).fill(task.status === 'completed'));
+    if (task) {
+      const steps = Array.isArray(task.steps) ? task.steps : [];
+      setChecked(new Array(steps.length).fill(task.status === 'completed'));
+    }
   }, [task?.id]);
 
   if (!task) return null;
 
   const isCompleted = task.status === 'completed';
+  const steps = Array.isArray(task.steps) ? task.steps : [];
   const allDone = checked.length > 0 && checked.every(Boolean);
 
   const toggle = (i) => {
@@ -87,7 +91,7 @@ function TaskDetailPanel({ task, onClose, onMarkDone }) {
             <p className="subtitle">{task.description}</p>
           </div>
           <div className="panel-header-right">
-            <StepProgressRing checked={checked} total={task.steps.length} />
+            <StepProgressRing checked={checked} total={steps.length} />
             <button className="close-btn" onClick={onClose} aria-label="Close">
               <CloseIcon size={16} />
             </button>
@@ -102,7 +106,7 @@ function TaskDetailPanel({ task, onClose, onMarkDone }) {
         )}
 
         <ul className="step-list" aria-label="Task steps">
-          {task.steps.map((step, i) => (
+          {steps.map((step, i) => (
             <li
               key={`${task.id}-${i}`}
               className={`step-item${checked[i] ? ' step-done' : ''}`}
