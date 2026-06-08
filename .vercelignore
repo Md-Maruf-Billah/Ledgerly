@@ -1,6 +1,4 @@
-# Vercel deploys only the frontend (Vite/React) from this repo.
-# The FastAPI backend lives in backend/ and will be deployed separately
-# once the Supabase stage is complete.
-backend/
+# Backend code is deployed as a Vercel Python serverless function via api/index.py
+# Only ignore non-deployable directories.
 supabase/
 docs/
