@@ -20,22 +20,25 @@ const statusLabel = {
 function TaskCard({ task, onOpen, index = 0 }) {
   const isCompleted = task.status === 'completed';
   const label = isCompleted ? null : urgencyLabel(task);
+  const days = getDaysLeft(task.dueDate);
+  const urgencyHint = isCompleted ? 'completed' : days < 0 ? `${Math.abs(days)} days overdue` : days === 0 ? 'due today' : `${days} days remaining`;
 
   return (
     <button
-      className={`task-card fade-in-task${isCompleted ? ' task-card--completed' : ''}`}
+      className={`task-card fade-in-task task-card--${task.status}`}
       style={{ '--stagger-delay': `${index * 45}ms` }}
       onClick={() => onOpen(task)}
+      aria-label={`${task.name}, ${urgencyHint}. ${task.steps.length} steps.`}
     >
       <div className="task-card-body">
         <h4>{task.name}</h4>
         <p>Due: {formatDate(task.dueDate)}</p>
         <small>{isCompleted && task.completedAt ? `Completed ${task.completedAt}` : `${task.steps.length} steps`}</small>
         {label && (
-          <span className={`urgency-tag urgency-${task.status}`}>{label}</span>
+          <span className={`urgency-tag urgency-${task.status}`} aria-hidden="true">{label}</span>
         )}
       </div>
-      <span className={`badge ${task.status}`}>{statusLabel[task.status] || task.status}</span>
+      <span className={`badge ${task.status}`} aria-hidden="true">{statusLabel[task.status] || task.status}</span>
     </button>
   );
 }

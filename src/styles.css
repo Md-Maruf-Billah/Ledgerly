@@ -5551,3 +5551,217 @@ select:focus,
 .error-boundary-card h2 { font-size: 1.2rem; font-weight: 700; margin: 0; }
 .error-boundary-card p  { font-size: 0.9rem; color: #666; margin: 0 0 0.5rem; line-height: 1.55; }
 .error-boundary-card .btn { margin-top: 0.25rem; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   PAULA SCHER REVAMP
+   Typography does the hierarchy work. Status speaks through the whole
+   card surface, not a stripe. Accessibility built into the system.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Skip to main content (WCAG 2.4.1) ───────────────────────────── */
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9999;
+  background: oklch(18% 0.035 68);
+  color: oklch(96% 0.02 76);
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 160ms var(--ease-out);
+}
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 2.5px solid oklch(70% 0.2 47);
+  outline-offset: 3px;
+}
+
+/* ── Global focus ring (WCAG AA — keyboard navigation) ────────────── */
+*:focus-visible {
+  outline: 2.5px solid oklch(70% 0.2 47) !important;
+  outline-offset: 3px !important;
+  border-radius: 4px;
+}
+
+/* ── Kill the banned 4px side-stripe on task cards ────────────────── */
+/* Absolute ban: border-left/right > 1px as a colored accent.          */
+/* Replaced by full-card tonal treatment below.                         */
+.task-card::before { display: none; }
+
+/* ── Full-card tonal status treatment ─────────────────────────────── */
+/* Status communicates through the entire card surface (bg + border),   */
+/* never through a stripe alone. Tonal trio: bg, border, heading color. */
+
+.task-card--overdue {
+  background: oklch(97.2% 0.016 26) !important;
+  border-color: oklch(85% 0.048 26) !important;
+  box-shadow: none !important;
+}
+.task-card--overdue h4 { color: oklch(34% 0.13 26); }
+
+.task-card--due-soon {
+  background: oklch(97.2% 0.02 78) !important;
+  border-color: oklch(86% 0.05 74) !important;
+  box-shadow: none !important;
+}
+.task-card--due-soon h4 { color: oklch(36% 0.11 70); }
+
+.task-card--upcoming {
+  background: oklch(99% 0.007 245) !important;
+  border-color: oklch(89% 0.022 240) !important;
+  box-shadow: none !important;
+}
+
+.task-card--completed {
+  background: oklch(97.5% 0.016 154) !important;
+  border-color: oklch(86% 0.044 152) !important;
+  box-shadow: none !important;
+}
+.task-card--completed h4 {
+  color: oklch(42% 0.1 155) !important;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-decoration-color: oklch(68% 0.09 155);
+}
+
+/* Hover — pointer devices only (never sticky on touch) */
+@media (hover: hover) and (pointer: fine) {
+  .task-card--overdue:hover  { background: oklch(96% 0.022 26) !important; border-color: oklch(80% 0.07 26) !important; }
+  .task-card--due-soon:hover { background: oklch(96% 0.026 78) !important; border-color: oklch(80% 0.075 74) !important; }
+  .task-card--upcoming:hover { background: oklch(97.5% 0.012 245) !important; }
+}
+
+/* ── Dashboard month — display scale ─────────────────────────────── */
+/* The month is the typographic centrepiece of the dashboard.          */
+/* Your eye lands here first; everything below is subordinate to it.   */
+.dashboard-month {
+  font-size: clamp(2.8rem, 6vw, 4.8rem) !important;
+  line-height: 0.92 !important;
+  letter-spacing: -0.065em !important;
+  color: oklch(18% 0.035 68);
+}
+
+/* Dashboard header — remove the card treatment, let the heading breathe */
+.dashboard-head {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0.5rem 0 0.25rem !important;
+  align-items: flex-end !important;
+}
+
+/* Ledgerly wordmark above the month — smaller, confident */
+.brand-mini {
+  font-size: 0.58rem !important;
+  letter-spacing: 0.18em !important;
+  color: oklch(70% 0.2 47) !important;
+  opacity: 1 !important;
+}
+
+/* Greeting — softer, subordinate to the month */
+.dashboard-head .subtitle {
+  font-size: 0.88rem !important;
+  color: oklch(52% 0.04 74) !important;
+  margin-top: 0.2rem !important;
+}
+
+/* ── Section labels — editorial chapter marks ─────────────────────── */
+/* Small caps + full-width rule. The eye reads the label and the        */
+/* horizontal line simultaneously signals the section boundary.         */
+.section-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.85rem !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.14em !important;
+  font-weight: 800 !important;
+  margin: 0 0 0.55rem !important;
+  white-space: nowrap;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.18;
+  border-radius: 999px;
+}
+/* Perceptually balanced OKLCH colors — same lightness, different hue */
+.section-overdue   { color: oklch(49% 0.17 28) !important; }
+.section-due-soon  { color: oklch(50% 0.14 68) !important; }
+.section-upcoming  { color: oklch(50% 0.06 248) !important; }
+.section-completed { color: oklch(48% 0.12 154) !important; }
+
+/* Task section spacing — more room above each section */
+.task-section { margin-top: 0.25rem; }
+
+/* ── Status badges — icon prefix for dual-mode status signaling ────── */
+/* Color + text + icon. Three independent signals means color-blind     */
+/* users and screen-reader users both get unambiguous status cues.      */
+/* aria-hidden="true" on the badge (set in JSX) so the aria-label on   */
+/* the card button provides the screen-reader text instead.             */
+.badge { display: inline-flex; align-items: center; gap: 0.25rem; }
+.badge.overdue::before   { content: '⚠'; font-size: 0.7em; }
+.badge.due-soon::before  { content: '→'; font-size: 0.8em; }
+.badge.upcoming::before  { content: '◦'; font-size: 0.9em; }
+.badge.completed::before { content: '✓'; font-size: 0.8em; font-weight: 800; }
+
+/* Remove shadows from all card surfaces — depth via border only */
+.form-card, .summary-card, .settings-card,
+.confirm-card, .welcome-card, .detail-panel,
+.modal-card, .overdue-banner, .metric-strip,
+.tour-card { box-shadow: none !important; }
+
+/* Metric strip — functional status bar, not vanity hero metric */
+.metric-strip {
+  background: oklch(99% 0.01 76) !important;
+  border: 1px solid oklch(88% 0.028 74) !important;
+  box-shadow: none !important;
+  border-radius: 14px !important;
+}
+.metric-num {
+  font-size: 1.75rem !important;
+  letter-spacing: -0.06em !important;
+}
+.metric-label {
+  font-size: 0.62rem !important;
+  letter-spacing: 0.1em !important;
+  color: oklch(54% 0.04 74) !important;
+}
+
+/* Overdue banner — measured tone, not alarm */
+.overdue-banner {
+  background: oklch(97.2% 0.016 26) !important;
+  border: 1px solid oklch(85% 0.048 26) !important;
+  box-shadow: none !important;
+}
+.banner-text { color: oklch(36% 0.1 30) !important; }
+.banner-text strong { color: oklch(28% 0.14 28) !important; }
+
+/* ── Touch targets — WCAG SC 2.5.5 (min 44×44px) ─────────────────── */
+.icon-btn, .close-btn, .banner-btn,
+.cal-nav-btn, .cal-today-btn { min-height: 44px; min-width: 44px; }
+.btn { min-height: 44px; }
+.add-task-btn { min-height: 44px; }
+
+/* ── Icon buttons — remove shadow, improve contrast ───────────────── */
+.icon-btn {
+  background: oklch(95% 0.018 76) !important;
+  border-color: oklch(84% 0.03 72) !important;
+  box-shadow: none !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  .icon-btn:hover {
+    background: oklch(91% 0.025 74) !important;
+  }
+}
+
+/* ── prefers-reduced-motion — disable all animations ──────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .task-card, .badge, .btn, .icon-btn,
+  .section-label, .dashboard-month { transition: none !important; animation: none !important; }
+}

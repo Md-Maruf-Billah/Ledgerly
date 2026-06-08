@@ -365,7 +365,8 @@ function App() {
   if (!ready) return null;
 
   return (
-    <main className="app-shell">
+    <main className="app-shell" id="main-content">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       {toast && (
         <div className={`toast toast-${toast.type}`} role="status" aria-live="polite">
           {toast.message}
