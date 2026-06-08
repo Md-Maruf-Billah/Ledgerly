@@ -60,17 +60,12 @@ async def logout(request: Request, user: dict = Depends(get_current_user)):
 
 @router.get("/me", response_model=SessionResponse)
 async def get_me(user: dict = Depends(get_current_user)):
-    from app.services.supabase_client import get_admin_client
-    client = get_admin_client()
-    profile = (
-        client.table("business_profiles")
-        .select("id")
-        .eq("user_id", user["user_id"])
-        .maybe_single()
-        .execute()
-    )
+    from app.services import db
+    rows = await db.select("business_profiles", user["token"], {
+        "select": "id", "user_id": f"eq.{user['user_id']}", "limit": "1",
+    })
     return SessionResponse(
         user_id=user["user_id"],
         email=user["email"],
-        has_profile=profile.data is not None,
+        has_profile=len(rows) > 0,
     )

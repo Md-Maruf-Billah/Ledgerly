@@ -8,10 +8,7 @@ router = APIRouter(prefix="/api/profile", tags=["profile"])
 
 @router.post("", response_model=ProfileResponse)
 async def create_profile(payload: ProfileCreate, user: dict = Depends(get_current_user)):
-    """
-    Called once at the end of onboarding (BusinessTypeSelector).
-    Saves profile, seeds compliance tasks, and generates initial notifications.
-    """
+    token = user["token"]
     try:
         profile = await profile_service.save_profile(user["user_id"], {
             "full_name": payload.full_name,
@@ -19,22 +16,18 @@ async def create_profile(payload: ProfileCreate, user: dict = Depends(get_curren
             "email": payload.email,
             "state": payload.state,
             "business_type": payload.business_type,
-        })
+        }, token)
 
-        tasks = []
-        notifications = []
-
+        tasks, notifications = [], []
         if payload.tasks:
-            tasks = await task_service.seed_tasks(user["user_id"], payload.tasks)
+            tasks = await task_service.seed_tasks(user["user_id"], payload.tasks, token)
             notifications = await notification_service.create_notifications_for_tasks(
-                user["user_id"], tasks, payload.business_name
+                user["user_id"], tasks, payload.business_name, token
             )
 
         return ProfileResponse(
             message="Profile saved and calendar built.",
-            profile=profile,
-            tasks=tasks,
-            notifications=notifications,
+            profile=profile, tasks=tasks, notifications=notifications,
         )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -42,20 +35,15 @@ async def create_profile(payload: ProfileCreate, user: dict = Depends(get_curren
 
 @router.get("/me", response_model=ProfileResponse)
 async def get_profile(user: dict = Depends(get_current_user)):
-    """Returns the user's full profile + all tasks + notifications for session restore."""
-    profile = await profile_service.get_profile(user["user_id"])
+    token = user["token"]
+    profile = await profile_service.get_profile(user["user_id"], token)
     if not profile:
         return ProfileResponse(message="No profile found.", profile=None, tasks=[], notifications=[])
 
-    tasks = await task_service.get_tasks(user["user_id"])
-    notifications = await notification_service.get_notifications(user["user_id"])
+    tasks = await task_service.get_tasks(user["user_id"], token)
+    notifications = await notification_service.get_notifications(user["user_id"], token)
 
-    return ProfileResponse(
-        message="ok",
-        profile=profile,
-        tasks=tasks,
-        notifications=notifications,
-    )
+    return ProfileResponse(message="ok", profile=profile, tasks=tasks, notifications=notifications)
 
 
 @router.put("/me", response_model=ProfileResponse)
@@ -64,7 +52,7 @@ async def update_profile(payload: ProfileUpdateRequest, user: dict = Depends(get
     if not update_data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update.")
     try:
-        profile = await profile_service.update_profile(user["user_id"], update_data)
+        profile = await profile_service.update_profile(user["user_id"], update_data, user["token"])
         return ProfileResponse(message="Profile updated.", profile=profile)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

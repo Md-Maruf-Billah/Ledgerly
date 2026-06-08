@@ -1,29 +1,17 @@
 """
-Supabase Auth integration via direct REST API calls (httpx).
-
-Why not the supabase-py auth client?
-  The Python client sends the API key as both `apikey` header AND
-  `Authorization: Bearer <key>`. New Supabase projects issue opaque
-  sb_publishable_/sb_secret_ keys that are NOT JWTs — Supabase rejects
-  them in the Authorization header. Calling the Auth REST API directly
-  with httpx lets us control exactly which headers are sent.
-
-  Rule: anon key goes in `apikey` header only (not Authorization).
-        User JWTs go in `Authorization: Bearer <jwt>` header only.
+Supabase Auth via direct httpx REST calls + PostgREST profile check.
+See db.py for why supabase-py is not used for database operations.
 """
 
 import httpx
 from app.config import settings
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
 def _auth_url(path: str) -> str:
     return f"{settings.SUPABASE_URL}/auth/v1{path}"
 
 
 def _anon_headers() -> dict:
-    """Headers for public/anon Supabase Auth calls (no user JWT)."""
     return {
         "apikey": settings.SUPABASE_ANON_KEY,
         "Content-Type": "application/json",
@@ -31,18 +19,30 @@ def _anon_headers() -> dict:
 
 
 def _user_headers(token: str) -> dict:
-    """Headers for calls that validate a user's JWT."""
-    return {
-        **_anon_headers(),
-        "Authorization": f"Bearer {token}",
-    }
+    return {**_anon_headers(), "Authorization": f"Bearer {token}"}
 
 
-# ── Auth operations ───────────────────────────────────────────────────────────
+async def _has_profile(user_id: str, token: str) -> bool:
+    """Check for a business profile using the user's own JWT (respects RLS)."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as c:
+            r = await c.get(
+                f"{settings.SUPABASE_URL}/rest/v1/business_profiles",
+                params={"select": "id", "user_id": f"eq.{user_id}", "limit": "1"},
+                headers={
+                    "apikey": settings.SUPABASE_ANON_KEY,
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json",
+                },
+            )
+        return r.status_code == 200 and len(r.json()) > 0
+    except Exception:
+        return False
+
 
 async def sign_up(email: str, password: str) -> dict:
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        res = await client.post(
+    async with httpx.AsyncClient(timeout=15.0) as c:
+        res = await c.post(
             _auth_url("/signup"),
             json={"email": email, "password": password},
             headers=_anon_headers(),
@@ -52,10 +52,8 @@ async def sign_up(email: str, password: str) -> dict:
 
     if res.status_code not in (200, 201):
         msg = (
-            data.get("msg")
-            or data.get("message")
-            or data.get("error_description")
-            or "Sign-up failed."
+            data.get("msg") or data.get("message")
+            or data.get("error_description") or "Sign-up failed."
         )
         raise ValueError(msg)
 
@@ -66,37 +64,29 @@ async def sign_up(email: str, password: str) -> dict:
     session = data.get("session")
 
     if session and session.get("access_token"):
-        # Email confirmation is OFF — Supabase returned a session immediately.
-        from app.services.supabase_client import get_admin_client
-        admin = get_admin_client()
-        profile = (
-            admin.table("business_profiles")
-            .select("id")
-            .eq("user_id", user["id"])
-            .maybe_single()
-            .execute()
-        )
+        # Email confirmation OFF → session returned immediately.
+        token = session["access_token"]
         return {
             "user_id": user["id"],
             "email": user["email"],
-            "access_token": session["access_token"],
+            "access_token": token,
             "refresh_token": session.get("refresh_token"),
-            "is_new_user": profile.data is None,
+            "is_new_user": not await _has_profile(user["id"], token),
         }
 
-    # Email confirmation is ON — no session yet. Try immediate sign-in.
+    # Email confirmation ON → no session yet. Try immediate sign-in.
     try:
         return await sign_in(email, password)
     except Exception:
         raise ValueError(
-            "Account created — please check your email and click the confirmation "
-            "link, then come back and sign in."
+            "Account created — please check your email and click the "
+            "confirmation link, then come back and sign in."
         )
 
 
 async def sign_in(email: str, password: str) -> dict:
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        res = await client.post(
+    async with httpx.AsyncClient(timeout=15.0) as c:
+        res = await c.post(
             _auth_url("/token?grant_type=password"),
             json={"email": email, "password": password},
             headers=_anon_headers(),
@@ -107,51 +97,34 @@ async def sign_in(email: str, password: str) -> dict:
     if res.status_code != 200:
         raise ValueError("Invalid email or password.")
 
-    access_token = data.get("access_token")
-    if not access_token:
+    token = data.get("access_token")
+    if not token:
         raise ValueError("Invalid email or password.")
 
     user = data.get("user", {})
     user_id = user.get("id")
 
-    from app.services.supabase_client import get_admin_client
-    admin = get_admin_client()
-    profile = (
-        admin.table("business_profiles")
-        .select("id")
-        .eq("user_id", user_id)
-        .maybe_single()
-        .execute()
-    )
-
     return {
         "user_id": user_id,
         "email": user.get("email"),
-        "access_token": access_token,
+        "access_token": token,
         "refresh_token": data.get("refresh_token"),
-        "is_new_user": profile.data is None,
+        "is_new_user": not await _has_profile(user_id, token),
     }
 
 
 async def sign_out(token: str) -> None:
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            await client.post(
-                _auth_url("/logout"),
-                headers=_user_headers(token),
-            )
+        async with httpx.AsyncClient(timeout=10.0) as c:
+            await c.post(_auth_url("/logout"), headers=_user_headers(token))
     except Exception:
-        pass  # Best-effort — client state is cleared regardless
+        pass
 
 
 async def get_session_user(token: str) -> dict | None:
-    """Validate a user JWT and return basic user info, or None if invalid."""
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            res = await client.get(
-                _auth_url("/user"),
-                headers=_user_headers(token),
-            )
+        async with httpx.AsyncClient(timeout=10.0) as c:
+            res = await c.get(_auth_url("/user"), headers=_user_headers(token))
         if res.status_code != 200:
             return None
         data = res.json()
