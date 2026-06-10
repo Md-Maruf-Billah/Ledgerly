@@ -526,11 +526,24 @@ select {
 .login-ripple {
   position: absolute;
   z-index: 0;
-  width: 190px;
-  height: 190px;
-  right: clamp(28px, 7vw, 96px);
-  top: clamp(90px, 16vh, 170px);
+  width: 250px;
+  height: 250px;
+  right: clamp(16px, 4vw, 64px);
+  top: clamp(82px, 14vh, 142px);
   pointer-events: none;
+}
+
+.login-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(255, 250, 245, 0.6);
+  border-radius: 50%;
+  background: rgba(255, 250, 245, 0.18);
+  transform: translate(-50%, -50%);
+  animation: login-ripple-core 3s ease-in-out infinite;
 }
 
 .login-ripple span {
@@ -538,36 +551,52 @@ select {
   inset: 50%;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(255, 250, 245, 0.18);
+  border: 1px solid rgba(255, 250, 245, 0.32);
   border-radius: 50%;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.2);
+  transform: translate(-50%, -50%) scale(0.08);
   will-change: transform, opacity;
-  animation: login-ripple 6.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: login-ripple 6.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 .login-ripple span:nth-child(2) {
-  animation-delay: -2.2s;
+  animation-delay: -1.6s;
 }
 
 .login-ripple span:nth-child(3) {
-  animation-delay: -4.4s;
+  animation-delay: -3.2s;
+}
+
+.login-ripple span:nth-child(4) {
+  animation-delay: -4.8s;
 }
 
 @keyframes login-ripple {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.2);
+    transform: translate(-50%, -50%) scale(0.08);
   }
-  10% {
-    opacity: 0.34;
+  7% {
+    opacity: 0.52;
   }
-  72% {
-    opacity: 0.05;
+  62% {
+    opacity: 0.14;
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1.08);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes login-ripple-core {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.12);
   }
 }
 
@@ -823,9 +852,10 @@ select {
   }
 
   .login-ripple {
-    width: 150px;
-    height: 150px;
-    top: clamp(72px, 14vh, 118px);
+    width: 200px;
+    height: 200px;
+    right: clamp(12px, 3vw, 38px);
+    top: clamp(66px, 12vh, 98px);
   }
 
   .login-brand-lockup img {

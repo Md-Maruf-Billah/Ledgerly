@@ -54,6 +54,7 @@ function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
           <span />
           <span />
           <span />
+          <span />
         </span>
 
         <div className="login-brand-lockup">
