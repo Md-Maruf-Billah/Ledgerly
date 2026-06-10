@@ -105,11 +105,11 @@ function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
             <span>Ledgerly</span>
           </div>
 
-          <p className="eyebrow">{mode === 'signin' ? 'Welcome back' : 'Start your calendar'}</p>
+          <p className="eyebrow">{mode === 'signin' ? 'Your compliance workspace' : 'Start your calendar'}</p>
           <h2>{mode === 'signin' ? 'Sign in to Ledgerly' : 'Create your account'}</h2>
           <p className="login-subtitle">
             {mode === 'signin'
-              ? 'Pick up exactly where you left off.'
+              ? 'Sign in to view your deadlines and next steps.'
               : 'Set up your compliance workspace in a few minutes.'}
           </p>
 
