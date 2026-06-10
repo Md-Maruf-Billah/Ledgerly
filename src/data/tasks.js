@@ -4,7 +4,7 @@ export const businessTypeTasks = {
   'Sole Trader': [
     {
       id: 'st-1',
-      name: 'BAS Lodgement — Q3 FY2026',
+      name: 'BAS Lodgement: Q3 FY2026',
       description:
         'Your Q3 Business Activity Statement (Jan–Mar) reports GST collected and PAYG instalments to the ATO. An overdue lodgement can attract penalties and interest charges.',
       dueDate: '2026-04-28',
@@ -17,7 +17,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'st-2',
-      name: 'PAYG Instalment — June Quarter',
+      name: 'PAYG Instalment: June Quarter',
       description:
         'Your PAYG instalment for the June quarter spreads income tax obligations across the year, preventing a large bill at tax time.',
       dueDate: '2026-06-21',
@@ -30,7 +30,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'st-3',
-      name: 'BAS Lodgement — Q4 FY2026',
+      name: 'BAS Lodgement: Q4 FY2026',
       description:
         'Your Q4 Business Activity Statement (Apr–Jun) closes out the financial year. Accurate reporting now avoids amendments later.',
       dueDate: '2026-07-28',
@@ -43,7 +43,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'st-4',
-      name: 'Superannuation Contribution — Q4',
+      name: 'Superannuation Contribution: Q4',
       description:
         'If you pay yourself a wage or have employees, super contributions for the April–June quarter are due 28 July. Missing this triggers the super guarantee charge.',
       dueDate: '2026-07-28',
@@ -69,7 +69,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'st-6',
-      name: 'Annual Tax Return — FY2026',
+      name: 'Annual Tax Return: FY2026',
       description:
         'Your individual tax return for FY2026 (July 2025–June 2026) must be lodged by 31 October. Claiming all eligible deductions now keeps your tax bill as low as possible.',
       dueDate: '2026-10-31',
@@ -86,7 +86,7 @@ export const businessTypeTasks = {
   Retail: [
     {
       id: 'rt-1',
-      name: 'PAYG Withholding — May Statement',
+      name: 'PAYG Withholding: May Statement',
       description:
         'Monthly PAYG withholding statements ensure tax withheld from employee wages is reported and paid to the ATO on time.',
       dueDate: '2026-05-21',
@@ -125,7 +125,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'rt-4',
-      name: 'BAS Lodgement — Q4 FY2026',
+      name: 'BAS Lodgement: Q4 FY2026',
       description:
         'Your quarterly BAS for April–June covers GST on retail sales and input credits on stock purchases. Getting it right now avoids a corrective amendment.',
       dueDate: '2026-07-28',
@@ -138,7 +138,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'rt-5',
-      name: 'Superannuation Payment — Q4',
+      name: 'Superannuation Payment: Q4',
       description:
         'Super guarantee payments for all eligible retail staff for the April–June quarter must clear your clearing house by 28 July.',
       dueDate: '2026-07-28',
@@ -151,7 +151,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'rt-6',
-      name: 'Annual Tax Return — FY2026',
+      name: 'Annual Tax Return: FY2026',
       description:
         'Your business and/or individual tax return for FY2026 captures all retail income, cost of goods sold, and operating expenses.',
       dueDate: '2026-10-31',
@@ -168,7 +168,7 @@ export const businessTypeTasks = {
   Hospitality: [
     {
       id: 'hs-1',
-      name: 'STP Finalisation — FY2026',
+      name: 'STP Finalisation: FY2026',
       description:
         'Finalising your Single Touch Payroll data lets employees access their income statements via myGov so they can lodge their tax returns.',
       dueDate: '2026-07-14',
@@ -181,7 +181,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'hs-2',
-      name: 'Quarterly Super Payment — Q4',
+      name: 'Quarterly Super Payment: Q4',
       description:
         'Casual and part-time hospitality rosters make super underpayments easy to miss. Confirming all eligible hours prevents super guarantee charges.',
       dueDate: '2026-07-28',
@@ -207,7 +207,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'hs-4',
-      name: 'BAS Lodgement — Q4 FY2026',
+      name: 'BAS Lodgement: Q4 FY2026',
       description:
         'Your Q4 BAS captures GST on food, beverage, and function sales for April–June and closes out your FY2026 GST position.',
       dueDate: '2026-07-28',
@@ -233,7 +233,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'hs-6',
-      name: 'Annual Tax Return — FY2026',
+      name: 'Annual Tax Return: FY2026',
       description:
         'Your hospitality business tax return for FY2026 must capture all revenue streams, food cost, wages, and occupancy expenses.',
       dueDate: '2026-10-31',
@@ -250,7 +250,7 @@ export const businessTypeTasks = {
   Trades: [
     {
       id: 'tr-1',
-      name: 'GST Instalment — Q3 Review',
+      name: 'GST Instalment: Q3 Review',
       description:
         'If your annual GST turnover is between $10M and $20M you lodge quarterly instalments. Reviewing the amount now avoids a large true-up at year end.',
       dueDate: '2026-04-28',
@@ -289,7 +289,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'tr-4',
-      name: 'BAS Lodgement — Q4 FY2026',
+      name: 'BAS Lodgement: Q4 FY2026',
       description:
         'Your Q4 BAS captures GST on jobs invoiced during April–June and input tax credits on materials and equipment purchased.',
       dueDate: '2026-07-28',
@@ -315,7 +315,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'tr-6',
-      name: 'Annual Tax Return — FY2026',
+      name: 'Annual Tax Return: FY2026',
       description:
         'Your trades business tax return for FY2026 must capture all job revenue, materials, tools, vehicle costs, and home-office deductions.',
       dueDate: '2026-10-31',
@@ -332,7 +332,7 @@ export const businessTypeTasks = {
   Consulting: [
     {
       id: 'cs-1',
-      name: 'BAS Lodgement — Q3 FY2026',
+      name: 'BAS Lodgement: Q3 FY2026',
       description:
         'Your Q3 BAS (Jan–Mar) reports GST on consulting fees and input credits on business expenses. Variable consulting income makes accurate reporting especially important.',
       dueDate: '2026-04-28',
@@ -358,7 +358,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'cs-3',
-      name: 'PAYG Instalment — June Quarter',
+      name: 'PAYG Instalment: June Quarter',
       description:
         'Consulting income can spike, making June quarter PAYG instalments critical for avoiding a large year-end tax bill.',
       dueDate: '2026-06-28',
@@ -371,7 +371,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'cs-4',
-      name: 'BAS Lodgement — Q4 FY2026',
+      name: 'BAS Lodgement: Q4 FY2026',
       description:
         'Your Q4 BAS closes out FY2026 GST reporting for April–June. Accurate lodgement now avoids a corrective amendment after tax return time.',
       dueDate: '2026-07-28',
@@ -397,7 +397,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'cs-6',
-      name: 'Annual Tax Return — FY2026',
+      name: 'Annual Tax Return: FY2026',
       description:
         'Your consulting business and individual tax return for FY2026 captures all fee income, home office costs, subscriptions, and professional development expenses.',
       dueDate: '2026-10-31',
@@ -414,7 +414,7 @@ export const businessTypeTasks = {
   'Small Team': [
     {
       id: 'sm-1',
-      name: 'PAYG Withholding — May Payment',
+      name: 'PAYG Withholding: May Payment',
       description:
         'Monthly PAYG withholding ensures tax deducted from your team\'s wages is remitted to the ATO on time, keeping payroll compliant.',
       dueDate: '2026-05-21',
@@ -440,7 +440,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'sm-3',
-      name: 'Superannuation Payment — Q4',
+      name: 'Superannuation Payment: Q4',
       description:
         'Super contributions for all eligible employees for the April–June quarter must clear your clearing house by 28 July to avoid the super guarantee charge.',
       dueDate: '2026-07-28',
@@ -453,7 +453,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'sm-4',
-      name: 'BAS Lodgement — Q4 FY2026',
+      name: 'BAS Lodgement: Q4 FY2026',
       description:
         'Your Q4 BAS for April–June closes out FY2026 GST reporting and should be lodged promptly to give you a clear picture before year-end accounts.',
       dueDate: '2026-07-28',
@@ -479,7 +479,7 @@ export const businessTypeTasks = {
     },
     {
       id: 'sm-6',
-      name: 'Annual Tax Return — FY2026',
+      name: 'Annual Tax Return: FY2026',
       description:
         'Your business tax return for FY2026 must capture all income, wages, super, and operating expenses. Completing it accurately now avoids costly amendments.',
       dueDate: '2026-10-31',

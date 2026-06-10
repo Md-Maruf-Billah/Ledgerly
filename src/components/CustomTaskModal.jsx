@@ -44,7 +44,7 @@ function CustomTaskModal({ onSave, onClose }) {
     e.preventDefault();
     const nextErrors = {};
 
-    // [Security] Client-side validation — server validates again independently
+    // [Security] Client-side validation; server validates again independently.
     const cleanName = sanitizeText(form.name, 200);
     if (!cleanName) nextErrors.name = 'Task name is required.';
     else if (cleanName.length > 200) nextErrors.name = 'Task name is too long (max 200 characters).';

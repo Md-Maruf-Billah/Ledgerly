@@ -2,11 +2,11 @@
  * Ledgerly API client.
  *
  * [Security] All requests include:
- *   - Authorization: Bearer <token>  (server validates this — client header is convenience)
+ *   - Authorization: Bearer <token>  (server validates this; client header is convenience)
  *   - X-Request-ID                   (UUID for correlating frontend errors with backend logs)
  *
  * [Security] 401 responses fire a 'ledgerly:unauthorized' event so App.jsx
- * can clear state and redirect to login — expired tokens never silently fail.
+ * can clear state and redirect to login, so expired tokens never silently fail.
  */
 
 import { sanitizeText, isValidISODate } from './sanitize.js';
@@ -106,7 +106,7 @@ async function request(method, path, body) {
     if (!res.ok) return { data: null, error: getErrorMessage(data, 'Request failed.') };
     return { data, error: null };
   } catch (err) {
-    // Network error — don't expose raw browser error message to UI
+    // Network error: don't expose raw browser error message to UI
     console.error(`[api] ${method} ${path} failed`, err);
     return { data: null, error: 'Could not reach the server. Check your connection.' };
   }
@@ -114,7 +114,7 @@ async function request(method, path, body) {
 
 // ─── Data transformers ────────────────────────────────────────────────────────
 // [Security] Sanitize user-provided strings coming FROM the backend before
-// rendering — defence-in-depth in case backend storage was compromised.
+// rendering, as defence-in-depth in case backend storage was compromised.
 
 export function transformTask(t) {
   return {

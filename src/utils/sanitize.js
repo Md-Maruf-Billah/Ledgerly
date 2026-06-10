@@ -1,7 +1,7 @@
 /**
  * Client-side sanitization helpers.
  *
- * These are a convenience layer — server-side validation is the real gate.
+ * These are a convenience layer; server-side validation is the real gate.
  * Never rely solely on client-side sanitization to prevent injection attacks.
  */
 

@@ -8,7 +8,7 @@ from app.dependencies import get_current_user
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 logger = logging.getLogger("ledgerly.auth")
 
-# Generic message shown on all auth failures — prevents email enumeration
+# Generic message shown on all auth failures to prevent email enumeration.
 _AUTH_FAIL = "Incorrect email or password."
 
 
@@ -39,7 +39,7 @@ async def login(payload: LoginRequest, request: Request):
         logger.info("login.success email=*** rid=%s", rid)
         return AuthResponse(message="Signed in successfully.", **result)
     except ValueError:
-        # Do NOT forward Supabase error — it may reveal whether email exists
+        # Do NOT forward the Supabase error; it may reveal whether an email exists.
         logger.warning("login.fail rid=%s", rid)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=_AUTH_FAIL)
     except Exception:

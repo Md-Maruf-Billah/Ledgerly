@@ -80,7 +80,7 @@ function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [calendarBuildReady, setCalendarBuildReady] = useState(false);
 
-  // ─── [Security] Global 401 listener — expired token → auto logout ──────────
+  // [Security] Global 401 listener: expired token triggers auto logout.
   const handleLogout = useCallback(async () => {
     const token = api.getToken();
     if (!isDemoMode && token) {
@@ -110,7 +110,7 @@ function App() {
     return () => window.removeEventListener('ledgerly:unauthorized', onUnauthorized);
   }, [handleLogout]);
 
-  // ─── App startup — restore session ─────────────────────────────────────────
+  // App startup: restore session.
   useEffect(() => {
     const init = async () => {
       const token = api.getToken();
@@ -144,11 +144,11 @@ function App() {
           }
         }
 
-        // Token was invalid or expired — clear it
+        // Token was invalid or expired, so clear it.
         api.clearToken();
       }
 
-      // No token — check for saved demo state
+      // No token: check for saved demo state.
       const saved = loadState();
       if (saved?.isDemoMode) {
         setIsDemoMode(true);
@@ -214,13 +214,13 @@ function App() {
     setIsDemoMode(false);
 
     if (data.is_new_user) {
-      // New user — send through onboarding
+      // New user: send through onboarding.
       setCurrentScreen('tour');
       setLoading(false);
       return;
     }
 
-    // Returning user — fetch their data
+    // Returning user: fetch their data.
     const { data: profileData, error: profileError } = await api.getProfile();
     if (profileError || !profileData?.profile) {
       // Authenticated but no profile yet

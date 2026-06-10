@@ -18,7 +18,7 @@ are enforced when a new account is registered.
 
 ## Security Architecture
 
-Ledgerly implements a layered security model — every trust boundary has its own defence.
+Ledgerly implements a layered security model; every trust boundary has its own defence.
 
 ### Layered Defence Overview
 
@@ -62,7 +62,7 @@ Every API response includes:
 
 - `SUPABASE_SERVICE_ROLE_KEY` is **never** present in frontend code, `.env.local`, or any committed file
 - All `.env` files are listed in `.gitignore` and excluded from version control
-- `.env.example` files contain only placeholder values — never real keys
+- `.env.example` files contain only placeholder values, never real keys
 
 ## Reporting a Vulnerability
 

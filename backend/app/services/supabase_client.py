@@ -3,10 +3,10 @@ from app.config import settings
 
 
 def get_anon_client() -> Client:
-    """Use for auth operations (sign-in, sign-up) — respects RLS."""
+    """Use for auth operations (sign-in, sign-up); respects RLS."""
     return create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
 
 def get_admin_client() -> Client:
-    """Use for server-side DB operations — bypasses RLS with service role key."""
+    """Use for server-side DB operations; bypasses RLS with service role key."""
     return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)

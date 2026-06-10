@@ -11,4 +11,4 @@ import os
 # At runtime on Vercel, __file__ is absolute, so this resolves correctly.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backend"))
 
-from app.main import app  # noqa: F401, E402 — Vercel picks up the ASGI `app` object
+from app.main import app  # noqa: F401, E402; Vercel picks up the ASGI `app` object

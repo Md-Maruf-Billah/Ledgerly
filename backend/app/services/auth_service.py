@@ -59,7 +59,7 @@ async def sign_up(email: str, password: str) -> dict:
 
     user = data.get("user")
     if not user:
-        raise ValueError("Sign-up failed — user not created.")
+        raise ValueError("Sign-up failed: user not created.")
 
     session = data.get("session")
 
@@ -79,7 +79,7 @@ async def sign_up(email: str, password: str) -> dict:
         return await sign_in(email, password)
     except Exception:
         raise ValueError(
-            "Account created — please check your email and click the "
+            "Account created. Please check your email and click the "
             "confirmation link, then come back and sign in."
         )
 

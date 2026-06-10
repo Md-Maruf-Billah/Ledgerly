@@ -34,7 +34,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """
     Adds defence-in-depth HTTP security headers to every response.
-    These do not replace backend auth — they reduce browser-level attack surface.
+    These do not replace backend auth; they reduce browser-level attack surface.
     """
 
     async def dispatch(self, request: Request, call_next):

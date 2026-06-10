@@ -10,7 +10,7 @@ from app.routes import auth, tasks, profiles, notifications
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+    format="%(asctime)s %(levelname)s %(name)s | %(message)s",
 )
 
 app = FastAPI(
@@ -33,7 +33,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
-# ── Global exception handler — never expose stack traces ──────────────────────
+# Global exception handler: never expose stack traces.
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
     logger = logging.getLogger("ledgerly.error")

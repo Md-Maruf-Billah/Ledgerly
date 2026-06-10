@@ -1,11 +1,11 @@
 -- ============================================================
--- Ledgerly — Draft Supabase Schema
--- STATUS: PLANNING ONLY — DO NOT APPLY until Supabase project exists
+-- Ledgerly: Draft Supabase Schema
+-- STATUS: PLANNING ONLY. DO NOT APPLY until Supabase project exists.
 -- Generated: 2026-06-08
 -- ============================================================
 --
 -- Notes:
--- • auth.users is managed by Supabase Auth — do not recreate it.
+-- • auth.users is managed by Supabase Auth; do not recreate it.
 -- • All user-scoped tables use user_id UUID referencing auth.users(id).
 -- • Row Level Security (RLS) must be enabled on every table.
 -- • created_at / updated_at are timestamptz, defaulting to now().
