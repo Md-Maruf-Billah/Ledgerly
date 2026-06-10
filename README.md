@@ -48,9 +48,6 @@ The `.gitignore` keeps local-only files out of GitHub, including:
 
 Safe templates such as `.env.example` and `backend/.env.example` are committed instead.
 
-## 45-Second Video Walkthrough
-
-> This is the public GitHub repository for Ledgerly. The project is organised by responsibility: `src` contains the React frontend, `public` contains the shipped assets, `backend` contains the FastAPI application, and `supabase` contains the database schema. The `docs` folder records the product and design decisions, while the root configuration files manage dependencies and deployment. The `.gitignore` excludes environment secrets, dependencies, build output, Python caches, and local logs. The full project and its development history are committed here on the `master` branch.
 
 ## License
 
