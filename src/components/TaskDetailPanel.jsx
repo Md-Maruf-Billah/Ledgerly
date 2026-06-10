@@ -1,143 +1,181 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { formatDate } from '../utils/dates';
-import { CloseIcon, CheckIcon } from './Icons';
+import { CalendarIcon, CheckIcon, CloseIcon } from './Icons';
+import { getStatusMeta } from '../data/status';
+
+const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 function StepProgressRing({ checked, total }) {
   const done = checked.filter(Boolean).length;
-  const r = 20;
-  const cx = 26;
-  const cy = 26;
-  const circ = 2 * Math.PI * r;
-  const pct    = total > 0 ? done / total : 0;
-  const offset = circ * (1 - pct);
-  const color  = pct === 1 ? 'var(--brand-green, #246b45)' : 'var(--brand-orange, #ff6200)';
-  const textColor = pct === 1 ? 'var(--brand-green, #246b45)' : 'var(--brand-ink, #1a1a1a)';
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
+  const progress = total > 0 ? done / total : 0;
 
   return (
-    <svg
-      width="48" height="48"
-      viewBox="0 0 52 52"
-      className="step-ring"
-      aria-label={`${done} of ${total} steps complete`}
-    >
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(63,43,28,0.1)" strokeWidth="3" />
-      <circle
-        cx={cx} cy={cy} r={r}
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeDasharray={circ}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${cx} ${cy})`}
-        style={{ transition: 'stroke-dashoffset 300ms cubic-bezier(0.23,1,0.32,1), stroke 200ms ease' }}
-      />
-      <text
-        x={cx} y={cy + 1}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize="10"
-        fontWeight="700"
-        fill={textColor}
-        fontFamily="DM Sans, system-ui, sans-serif"
-      >
-        {done}/{total}
-      </text>
-    </svg>
+    <div className={`step-progress${progress === 1 ? ' step-progress--complete' : ''}`}>
+      <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true">
+        <circle className="step-progress-track" cx="26" cy="26" r={radius} />
+        <circle
+          className="step-progress-value"
+          cx="26"
+          cy="26"
+          r={radius}
+          strokeDasharray={circumference}
+          style={{ '--progress-offset': circumference * (1 - progress) }}
+        />
+      </svg>
+      <span className="step-progress-label mono">{done}/{total}</span>
+    </div>
   );
 }
 
 function TaskDetailPanel({ task, onClose, onMarkDone }) {
   const [checked, setChecked] = useState([]);
+  const panelRef = useRef(null);
+  const closeRef = useRef(null);
+  const previousFocusRef = useRef(null);
 
   useEffect(() => {
-    if (task) {
-      const steps = Array.isArray(task.steps) ? task.steps : [];
-      setChecked(new Array(steps.length).fill(task.status === 'completed'));
-    }
-  }, [task?.id]);
+    if (!task) return undefined;
+    const steps = Array.isArray(task.steps) ? task.steps : [];
+    setChecked(new Array(steps.length).fill(task.status === 'completed'));
+    previousFocusRef.current = document.activeElement;
+    document.body.classList.add('panel-open');
+    requestAnimationFrame(() => closeRef.current?.focus());
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab' || !panelRef.current) return;
+      const nodes = [...panelRef.current.querySelectorAll(FOCUSABLE)].filter(
+        (node) => !node.disabled
+      );
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.classList.remove('panel-open');
+      previousFocusRef.current?.focus?.();
+    };
+  }, [task?.id, onClose]);
 
   if (!task) return null;
 
   const isCompleted = task.status === 'completed';
   const steps = Array.isArray(task.steps) ? task.steps : [];
   const allDone = checked.length > 0 && checked.every(Boolean);
+  const meta = getStatusMeta(task.status);
 
-  const toggle = (i) => {
+  const toggle = (index) => {
     if (isCompleted) return;
-    setChecked((prev) => prev.map((v, idx) => (idx === i ? !v : v)));
-  };
-
-  const handleKeyDown = (e, i) => {
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault();
-      toggle(i);
-    }
+    setChecked((current) => current.map((value, itemIndex) => (
+      itemIndex === index ? !value : value
+    )));
   };
 
   return (
     <div
-      className="overlay"
-      role="dialog"
-      aria-modal="true"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="overlay task-detail-overlay"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
     >
-      <div className="detail-panel slide-up">
-
-        {/* Header row: title + ring + close */}
-        <div className="panel-header">
-          <div className="panel-title-text">
-            <h3>{task.name}</h3>
-            <p className="subtitle">{task.description}</p>
-          </div>
-          <div className="panel-header-right">
-            <StepProgressRing checked={checked} total={steps.length} />
-            <button className="close-btn" onClick={onClose} aria-label="Close">
-              <CloseIcon size={16} />
-            </button>
-          </div>
+      <section
+        className="detail-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-detail-title"
+        ref={panelRef}
+      >
+        <div className="detail-panel-header">
+          <span className={`status-badge status-badge--${task.status}`}>
+            <span className="status-dot" aria-hidden="true" />
+            {meta.label}
+          </span>
+          <button ref={closeRef} className="icon-btn close-btn" onClick={onClose} aria-label="Close task detail">
+            <CloseIcon size={17} />
+          </button>
         </div>
 
-        <p className="panel-meta"><strong>Due date:</strong> {formatDate(task.dueDate)}</p>
-        {isCompleted && task.completedAt && (
-          <p className="completed-note">
-            <CheckIcon size={13} strokeWidth={2.5} /> Completed {task.completedAt}
-          </p>
-        )}
+        <div className="detail-panel-content">
+          <div className="detail-title-row">
+            <div>
+              <p className="eyebrow">Obligation checklist</p>
+              <h2 id="task-detail-title">{task.name}</h2>
+            </div>
+            <StepProgressRing checked={checked} total={steps.length} />
+          </div>
 
-        <ul className="step-list" aria-label="Task steps">
-          {steps.map((step, i) => (
-            <li
-              key={`${task.id}-${i}`}
-              className={`step-item${checked[i] ? ' step-done' : ''}`}
-              role="checkbox"
-              aria-checked={checked[i]}
-              tabIndex={isCompleted ? -1 : 0}
-              onClick={() => toggle(i)}
-              onKeyDown={(e) => handleKeyDown(e, i)}
-              style={{ cursor: isCompleted ? 'default' : 'pointer' }}
-            >
-              <span className="step-check" aria-hidden="true">
-                {checked[i] ? <CheckIcon size={11} strokeWidth={3} /> : null}
-              </span>
-              <span className="step-text">{step}</span>
-            </li>
-          ))}
-        </ul>
+          <p className="detail-description">{task.description}</p>
+          <div className="detail-meta">
+            <CalendarIcon size={16} />
+            <span>Due {formatDate(task.dueDate)}</span>
+            <span aria-hidden="true">•</span>
+            <span>{steps.length} steps</span>
+          </div>
 
-        <button
-          className={`btn btn-full${allDone ? ' btn-primary' : ' btn-locked'}`}
-          onClick={allDone && !isCompleted ? () => onMarkDone(task.id) : undefined}
-          disabled={!allDone || isCompleted}
-          aria-disabled={!allDone || isCompleted}
-        >
-          {isCompleted
-            ? <><CheckIcon size={16} strokeWidth={2.5} /> Completed</>
-            : allDone
-            ? <><CheckIcon size={16} strokeWidth={2.5} /> Mark as Done</>
-            : 'Complete all steps first'}
-        </button>
-      </div>
+          {isCompleted && task.completedAt && (
+            <div className="completed-note">
+              <CheckIcon size={16} />
+              Completed {task.completedAt}
+            </div>
+          )}
+
+          <div className="detail-section-heading">
+            <h3>How to complete it</h3>
+            <span className="mono">{checked.filter(Boolean).length}/{steps.length}</span>
+          </div>
+
+          <ul className="step-list" aria-label="Task steps">
+            {steps.map((step, index) => (
+              <li key={`${task.id}-${index}`}>
+                <label className={`step-item${checked[index] ? ' step-done' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(checked[index])}
+                    disabled={isCompleted}
+                    onChange={() => toggle(index)}
+                  />
+                  <span className="step-check" aria-hidden="true">
+                    {checked[index] && <CheckIcon size={12} strokeWidth={3} />}
+                  </span>
+                  <span className="step-text">{step}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="detail-panel-footer">
+          <button
+            type="button"
+            className={`btn btn-full${allDone && !isCompleted ? ' btn-primary' : ' btn-secondary'}`}
+            onClick={allDone && !isCompleted ? () => onMarkDone(task.id) : undefined}
+            disabled={!allDone || isCompleted}
+          >
+            {isCompleted
+              ? <><CheckIcon size={16} /> Completed</>
+              : allDone
+                ? <><CheckIcon size={16} /> Mark as complete</>
+                : `Complete all steps (${checked.filter(Boolean).length}/${steps.length})`}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

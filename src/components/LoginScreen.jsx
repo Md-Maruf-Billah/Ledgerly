@@ -1,147 +1,162 @@
 import React, { useState } from 'react';
-import { ArrowRightIcon } from './Icons';
-
-const SIDE_IMAGE = 'https://picsum.photos/seed/ledgerly-calm-desk/1200/900';
+import { ArrowRightIcon, CalendarIcon, CheckIcon, ClockIcon } from './Icons';
 
 function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
-  const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
+  const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
 
   const handleChange = (key, value) => {
-    setForm(prev => ({ ...prev, [key]: value }));
-    setErrors(prev => ({ ...prev, [key]: '' }));
+    setForm((current) => ({ ...current, [key]: value }));
+    setErrors((current) => ({ ...current, [key]: '' }));
     setAuthError('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     const nextErrors = {};
     if (!form.email.trim()) nextErrors.email = 'Email is required.';
     if (!form.password) nextErrors.password = 'Password is required.';
-    if (mode === 'signup' && form.password.length < 6)
+    if (mode === 'signup' && form.password.length < 6) {
       nextErrors.password = 'Password must be at least 6 characters.';
-    if (Object.keys(nextErrors).length > 0) {
+    }
+    if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
       return;
     }
 
     setLoading(true);
     setAuthError('');
-
+    const finish = () => setLoading(false);
     if (mode === 'signup') {
-      onRegisterSuccess(form.email, form.password, setAuthError, () => setLoading(false));
+      onRegisterSuccess(form.email, form.password, setAuthError, finish);
     } else {
-      onLoginSuccess(form.email, form.password, setAuthError, () => setLoading(false));
+      onLoginSuccess(form.email, form.password, setAuthError, finish);
     }
   };
 
   const switchMode = () => {
-    setMode(m => (m === 'signin' ? 'signup' : 'signin'));
+    setMode((current) => current === 'signin' ? 'signup' : 'signin');
     setErrors({});
     setAuthError('');
   };
 
   return (
-    <main className="simple-login-page">
-      <section className="simple-login-shell" aria-label="Ledgerly sign in">
-        <aside
-          className="simple-login-story"
-          style={{ '--login-bg-image': `url(${SIDE_IMAGE})` }}
-        >
-          <div className="simple-login-brand">
-            <div className="brand-mark simple-login-mark" aria-hidden="true">
-              <div className="brand-grid"><span /><span /><span /><span /></div>
-            </div>
+    <section className="login-screen">
+      <aside className="login-story">
+        <div className="login-brand-lockup">
+          <img src="/logo-mark-light.svg" width="42" height="42" alt="" />
+          <span>Ledgerly</span>
+        </div>
+
+        <div className="login-story-copy">
+          <p className="login-eyebrow">Compliance, calmly handled</p>
+          <h1>Every deadline in one clear place.</h1>
+          <p>
+            Ledgerly turns BAS, PAYG, super and renewals into a practical plan,
+            so you always know what comes next.
+          </p>
+        </div>
+
+        <div className="login-ledger-preview" aria-hidden="true">
+          <div className="login-ledger-month">
+            <span>June</span>
+            <strong>2026</strong>
+          </div>
+          <div className="login-ledger-item login-ledger-item--soon">
+            <span className="login-ledger-icon"><ClockIcon size={16} /></span>
+            <span><strong>PAYG instalment</strong><small>Due in 11 days</small></span>
+            <span className="login-ledger-date">21 JUN</span>
+          </div>
+          <div className="login-ledger-item login-ledger-item--upcoming">
+            <span className="login-ledger-icon"><CalendarIcon size={16} /></span>
+            <span><strong>BAS lodgement</strong><small>Scheduled ahead</small></span>
+            <span className="login-ledger-date">28 JUL</span>
+          </div>
+          <div className="login-ledger-progress">
+            <span><CheckIcon size={14} /> Your month is mapped</span>
+            <strong>6 obligations</strong>
+          </div>
+        </div>
+
+        <ul className="login-benefits">
+          <li><CheckIcon size={15} /> Plain-English checklists for each obligation</li>
+          <li><CheckIcon size={15} /> Calm reminders before deadlines arrive</li>
+          <li><CheckIcon size={15} /> A completion record you can return to</li>
+        </ul>
+      </aside>
+
+      <div className="login-form-panel">
+        <div className="login-card fade-in">
+          <div className="login-mobile-brand">
+            <img src="/logo-mark.svg" width="34" height="34" alt="" />
             <span>Ledgerly</span>
           </div>
 
-          <div className="simple-login-copy">
-            <h1>Keep every compliance date in view.</h1>
-            <p>
-              Ledgerly gives Australian sole traders a calm calendar for BAS, PAYG,
-              super, renewals, and the records that prove each task was handled.
-            </p>
-          </div>
-        </aside>
+          <p className="eyebrow">{mode === 'signin' ? 'Welcome back' : 'Start your calendar'}</p>
+          <h2>{mode === 'signin' ? 'Sign in to Ledgerly' : 'Create your account'}</h2>
+          <p className="login-subtitle">
+            {mode === 'signin'
+              ? 'Pick up exactly where you left off.'
+              : 'Set up your compliance workspace in a few minutes.'}
+          </p>
 
-        <div className="simple-login-panel">
-          <div className="login-card simple-login-card fade-in">
-            <h2 className="login-form-heading">
-              {mode === 'signin' ? 'Sign in' : 'Create account'}
-            </h2>
-            <p className="subtitle">
-              {mode === 'signin'
-                ? 'Access your compliance calendar.'
-                : 'Set up your free Ledgerly account.'}
-            </p>
-
-            <form onSubmit={handleSubmit} className="login-form" noValidate>
-              <label className="login-label">
-                Email
-                <input
-                  type="email"
-                  className={`login-input${errors.email ? ' input-error' : ''}`}
-                  value={form.email}
-                  onChange={e => handleChange('email', e.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  disabled={loading}
-                />
-                {errors.email && <small className="error-text">{errors.email}</small>}
-              </label>
-
-              <label className="login-label">
-                Password
-                <input
-                  type="password"
-                  className={`login-input${errors.password ? ' input-error' : ''}`}
-                  value={form.password}
-                  onChange={e => handleChange('password', e.target.value)}
-                  placeholder={mode === 'signup' ? 'At least 6 characters' : '••••••••'}
-                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                  disabled={loading}
-                />
-                {errors.password && <small className="error-text">{errors.password}</small>}
-              </label>
-
-              {authError && (
-                <p className="auth-error" role="alert">{authError}</p>
-              )}
-
-              <button
-                type="submit"
-                className={`btn btn-primary login-submit${loading ? ' btn-loading' : ''}`}
+          <form onSubmit={handleSubmit} className="login-form" noValidate>
+            <label className="field">
+              <span>Email address</span>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(event) => handleChange('email', event.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
                 disabled={loading}
-              >
-                {loading
-                  ? <><span className="btn-spinner" aria-hidden="true" /> {mode === 'signin' ? 'Signing in…' : 'Creating account…'}</>
-                  : <><ArrowRightIcon size={16} /> {mode === 'signin' ? 'Sign in' : 'Create account'}</>}
-              </button>
-            </form>
+                aria-invalid={Boolean(errors.email)}
+              />
+              {errors.email && <small className="error-text">{errors.email}</small>}
+            </label>
 
-            <p className="login-switch-mode">
-              {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}
-              <button type="button" className="link-btn" onClick={switchMode} disabled={loading}>
-                {mode === 'signin' ? 'Sign up' : 'Sign in'}
-              </button>
-            </p>
+            <label className="field">
+              <span>Password</span>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(event) => handleChange('password', event.target.value)}
+                placeholder={mode === 'signup' ? 'At least 6 characters' : 'Enter your password'}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                disabled={loading}
+                aria-invalid={Boolean(errors.password)}
+              />
+              {errors.password && <small className="error-text">{errors.password}</small>}
+            </label>
 
-            <div className="login-divider"><span>or</span></div>
+            {authError && <p className="auth-error" role="alert">{authError}</p>}
 
-            <button type="button" className="btn btn-secondary" onClick={onDemoLogin} disabled={loading}>
-              Try demo mode
+            <button type="submit" className="btn btn-primary btn-full login-submit" disabled={loading}>
+              {loading
+                ? <><span className="btn-spinner" aria-hidden="true" /> Working...</>
+                : <>{mode === 'signin' ? 'Sign in' : 'Create account'} <ArrowRightIcon size={16} /></>}
             </button>
+          </form>
 
-            <p className="demo-hint">
-              Explore Ledgerly with sample data — no account needed.
-            </p>
-          </div>
+          <p className="login-switch">
+            {mode === 'signin' ? 'New to Ledgerly?' : 'Already have an account?'}
+            <button type="button" className="text-button" onClick={switchMode} disabled={loading}>
+              {mode === 'signin' ? 'Create an account' : 'Sign in instead'}
+            </button>
+          </p>
+
+          <div className="login-divider"><span>or explore first</span></div>
+
+          <button type="button" className="btn btn-secondary btn-full" onClick={onDemoLogin} disabled={loading}>
+            Open demo workspace
+          </button>
+          <p className="demo-hint">Uses sample data. No account or setup required.</p>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
   );
 }
 

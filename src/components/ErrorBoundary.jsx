@@ -27,12 +27,10 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="error-boundary-screen">
           <div className="error-boundary-card">
-            <div className="brand-mark" aria-hidden="true">
-              <div className="brand-grid"><span /><span /><span /><span /></div>
-            </div>
+            <img className="error-brand-mark" src="/logo-mark.svg" width="56" height="56" alt="" />
             <h2>Something went wrong</h2>
             <p>
-              An unexpected error occurred. Your data is safe — please refresh
+              An unexpected error occurred. Your data is safe. Please refresh
               the page to continue.
             </p>
             <button

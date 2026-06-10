@@ -1,161 +1,184 @@
-import React, { useRef, useMemo, memo } from 'react';
+import React, { useMemo, memo } from 'react';
 import TaskCard from './TaskCard';
 import ObligationTimeline from './ObligationTimeline';
-import { StarIcon, BellIcon, SettingsIcon, AlertIcon, CheckIcon, PlusIcon, ArrowRightIcon, CalendarIcon } from './Icons';
+import {
+  AlertIcon,
+  ArrowRightIcon,
+  CalendarIcon,
+  CheckIcon,
+  ClockIcon,
+} from './Icons';
+import { formatDate, getDaysLeft } from '../utils/dates';
+import { STATUS_ORDER, getStatusMeta } from '../data/status';
 
-function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSummary, onOpenSettings, onOpenNotifications, onOpenPricing, onAddTask, onOpenCalendar, unreadCount }) {
-  // monthLabel is stable for the lifetime of one dashboard mount
+function getNextTask(tasks) {
+  const priority = { overdue: 0, 'due-soon': 1, upcoming: 2, completed: 3 };
+  return [...tasks]
+    .filter((task) => task.status !== 'completed')
+    .sort((a, b) => {
+      const statusDiff = priority[a.status] - priority[b.status];
+      if (statusDiff !== 0) return statusDiff;
+      return String(a.dueDate).localeCompare(String(b.dueDate));
+    })[0] || null;
+}
+
+function getNextTaskMessage(task) {
+  if (!task) return 'Your calendar is clear.';
+  const days = getDaysLeft(task.dueDate);
+  if (days === null) return 'Review this obligation when you are ready.';
+  if (days < 0) return `${Math.abs(days)} days overdue. Take it one step at a time.`;
+  if (days === 0) return 'Due today. Everything you need is in the checklist.';
+  if (days === 1) return 'Due tomorrow. A quick review now will keep you ahead.';
+  return `Due in ${days} days. You have time to plan it properly.`;
+}
+
+function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSummary }) {
   const monthLabel = useMemo(
     () => new Date().toLocaleDateString('en-AU', { month: 'long', year: 'numeric' }),
     []
   );
-  // Filtered task groups — only recompute when tasks array reference changes
-  const overdue      = useMemo(() => tasks.filter(t => t.status === 'overdue'),    [tasks]);
-  const dueSoon      = useMemo(() => tasks.filter(t => t.status === 'due-soon'),   [tasks]);
-  const upcoming     = useMemo(() => tasks.filter(t => t.status === 'upcoming'),   [tasks]);
-  const completed    = useMemo(() => tasks.filter(t => t.status === 'completed'),  [tasks]);
-  const pendingCount = useMemo(() => tasks.length - completed.length, [tasks, completed]);
-  const overdueRef = useRef(null);
-
-  const scrollToOverdue = () =>
-    overdueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const grouped = useMemo(
+    () => Object.fromEntries(STATUS_ORDER.map((status) => [
+      status,
+      tasks.filter((task) => task.status === status),
+    ])),
+    [tasks]
+  );
+  const pendingCount = tasks.length - grouped.completed.length;
+  const nextTask = useMemo(() => getNextTask(tasks), [tasks]);
+  const firstName = userProfile.fullName?.split(' ')[0] || 'there';
 
   return (
-    <section className="screen fade-in">
-      <div className="dashboard-wrap">
+    <section className="screen dashboard-screen fade-in">
+      <header className="page-header dashboard-page-header">
+        <div>
+          <p className="eyebrow">Overview</p>
+          <h1>{monthLabel}</h1>
+          <p className="page-intro">Good morning, {firstName}. Here is what deserves your attention.</p>
+        </div>
+        <button type="button" className="btn btn-secondary page-header-action" onClick={onOpenSummary}>
+          Monthly report <ArrowRightIcon size={15} />
+        </button>
+      </header>
 
-        <header className="dashboard-head">
-          <div className="dashboard-head-left">
-            <p className="brand-mini">Ledgerly</p>
-            <h2 className="dashboard-month">{monthLabel}</h2>
-            <p className="subtitle">Welcome back, {userProfile.fullName?.split(' ')[0] || 'there'}.</p>
+      <div className="dashboard-focus-grid">
+        {nextTask ? (
+          <button
+            type="button"
+            className={`next-obligation next-obligation--${nextTask.status}`}
+            onClick={() => onOpenTask(nextTask)}
+          >
+            <span className="next-obligation-topline">
+              <span className="eyebrow">Next obligation</span>
+              <span className={`status-badge status-badge--${nextTask.status}`}>
+                <span className="status-dot" aria-hidden="true" />
+                {getStatusMeta(nextTask.status).label}
+              </span>
+            </span>
+            <span className="next-obligation-title">{nextTask.name}</span>
+            <span className="next-obligation-date">
+              <CalendarIcon size={16} />
+              Due {formatDate(nextTask.dueDate)}
+            </span>
+            <span className="next-obligation-message">{getNextTaskMessage(nextTask)}</span>
+            <span className="next-obligation-link">
+              Open checklist <ArrowRightIcon size={16} />
+            </span>
+          </button>
+        ) : (
+          <div className="next-obligation next-obligation--clear">
+            <span className="next-obligation-clear-icon"><CheckIcon size={24} /></span>
+            <span className="eyebrow">All clear</span>
+            <span className="next-obligation-title">You are caught up</span>
+            <span className="next-obligation-message">There are no pending obligations on your calendar.</span>
           </div>
-          <div className="dash-actions">
-            <button className="dashboard-add-btn" type="button" onClick={onAddTask}>
-              <PlusIcon size={15} />
-              Add task
-            </button>
-            <button className="icon-btn" type="button" onClick={onOpenCalendar} aria-label="Open calendar">
-              <CalendarIcon size={18} />
-            </button>
-            <button className="icon-btn" type="button" onClick={onOpenPricing} aria-label="Upgrade to Pro">
-              <StarIcon size={18} />
-            </button>
-            <button className="icon-btn notif-btn" type="button" onClick={onOpenNotifications} aria-label="Notifications">
-              <BellIcon size={18} />
-              {unreadCount > 0 && (
-                <span className="notif-badge" aria-label={`${unreadCount} unread`}>{unreadCount}</span>
-              )}
-            </button>
-            <button className="icon-btn" type="button" onClick={onOpenSettings} aria-label="Open settings">
-              <SettingsIcon size={18} />
-            </button>
-          </div>
-        </header>
+        )}
 
-        <div className="metric-strip">
-          <div className="metric">
-            <span className="metric-num metric-num--complete">{completedCount}</span>
-            <span className="metric-label">Completed</span>
+        <div className="status-overview" aria-label="Monthly status summary">
+          <div className="status-overview-heading">
+            <div>
+              <p className="eyebrow">This month</p>
+              <h2>{pendingCount === 0 ? 'Everything is handled' : `${pendingCount} still in motion`}</h2>
+            </div>
+            <span className="status-overview-total mono">{tasks.length}</span>
           </div>
-          <div className="metric-divider" aria-hidden="true" />
-          <div className="metric">
-            <span className={`metric-num${overdue.length > 0 ? ' metric-num--overdue' : ''}`}>{overdue.length}</span>
-            <span className="metric-label">Overdue</span>
+          <div className="status-overview-list">
+            <div className="status-overview-row">
+              <span className="metric-icon metric-icon--completed"><CheckIcon size={16} /></span>
+              <span>Completed</span>
+              <strong className="mono">{completedCount}</strong>
+            </div>
+            <div className="status-overview-row">
+              <span className="metric-icon metric-icon--overdue"><AlertIcon size={16} /></span>
+              <span>Needs attention</span>
+              <strong className="mono">{grouped.overdue.length}</strong>
+            </div>
+            <div className="status-overview-row">
+              <span className="metric-icon metric-icon--due-soon"><ClockIcon size={16} /></span>
+              <span>Due soon</span>
+              <strong className="mono">{grouped['due-soon'].length}</strong>
+            </div>
+            <div className="status-overview-row">
+              <span className="metric-icon metric-icon--upcoming"><CalendarIcon size={16} /></span>
+              <span>Scheduled ahead</span>
+              <strong className="mono">{grouped.upcoming.length}</strong>
+            </div>
           </div>
-          <div className="metric-divider" aria-hidden="true" />
-          <div className="metric">
-            <span className="metric-num">{pendingCount}</span>
-            <span className="metric-label">Pending</span>
-          </div>
-          <button type="button" className="metric-summary-btn" onClick={onOpenSummary}>
-            Monthly report
-            <ArrowRightIcon size={14} />
+        </div>
+      </div>
+
+      {tasks.length > 0 && (
+        <ObligationTimeline tasks={tasks} onOpenTask={onOpenTask} />
+      )}
+
+      {grouped.overdue.length > 0 && (
+        <div className="overdue-banner" role="status">
+          <span className="banner-icon"><AlertIcon size={18} /></span>
+          <p className="banner-text">
+            <strong>{grouped.overdue.length} obligation{grouped.overdue.length === 1 ? '' : 's'} need attention.</strong>
+            {' '}Nothing is hidden, and each one has a clear checklist.
+          </p>
+          <button type="button" className="banner-btn" onClick={() => onOpenTask(grouped.overdue[0])}>
+            Review first
           </button>
         </div>
+      )}
 
-        {tasks.length > 0 && (
-          <ObligationTimeline tasks={tasks} onOpenTask={onOpenTask} />
-        )}
-
-        {overdue.length > 0 && (
-          <div className="overdue-banner" role="alert">
-            <span className="banner-icon"><AlertIcon size={18} /></span>
-            <p className="banner-text">
-              You have <strong>{overdue.length}</strong> overdue obligation{overdue.length !== 1 ? 's' : ''}.
-              Review these first when you are ready.
-            </p>
-            <button type="button" className="banner-btn" onClick={scrollToOverdue}>
-              View Overdue
-            </button>
+      {pendingCount === 0 && (
+        <div className="empty-state-card">
+          <div className="empty-check" aria-hidden="true"><CheckIcon size={24} /></div>
+          <div>
+            <h2>You are all caught up</h2>
+            <p>No pending compliance tasks this month. Your completed records remain below.</p>
           </div>
-        )}
+        </div>
+      )}
 
-        {pendingCount === 0 && (
-          <div className="empty-state-card fade-in">
-            <div className="empty-check" aria-hidden="true">
-              <CheckIcon size={26} strokeWidth={2.5} />
-            </div>
-            <h3 className="empty-state-heading">You're all caught up</h3>
-            <p className="empty-state-sub">No pending compliance tasks this month. Check back next month.</p>
-          </div>
-        )}
-
-        {pendingCount > 0 && (
-          <>
-            <div className="task-section" ref={overdueRef}>
-              <h3 className="section-label section-overdue">Overdue</h3>
-              {overdue.length
-                ? overdue.map((task, i) => (
-                    <TaskCard key={task.id} task={task} onOpen={onOpenTask} index={i} />
-                  ))
-                : <p className="empty">No overdue tasks.</p>}
-            </div>
-
-            <div className="task-section">
-              <h3 className="section-label section-due-soon">Due Soon</h3>
-              {dueSoon.length
-                ? dueSoon.map((task, i) => (
-                    <TaskCard key={task.id} task={task} onOpen={onOpenTask} index={overdue.length + i} />
-                  ))
-                : <p className="empty">No tasks due soon.</p>}
-            </div>
-
-            <div className="task-section">
-              <h3 className="section-label section-upcoming">Upcoming</h3>
-              {upcoming.length
-                ? upcoming.map((task, i) => (
-                    <TaskCard key={task.id} task={task} onOpen={onOpenTask} index={overdue.length + dueSoon.length + i} />
-                  ))
-                : <p className="empty">No upcoming tasks.</p>}
-            </div>
-          </>
-        )}
-
-        {completed.length > 0 && (
-          <div className="task-section">
-            <h3 className="section-label section-completed">Completed</h3>
-            {completed.map((task, i) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onOpen={onOpenTask}
-                index={overdue.length + dueSoon.length + upcoming.length + i}
-              />
-            ))}
-          </div>
-        )}
-
-        <button type="button" className="add-task-btn" onClick={onAddTask}>
-          <PlusIcon size={15} />
-          Add Custom Task
-        </button>
-
+      <div className="task-groups">
+        {STATUS_ORDER.map((status) => {
+          const list = grouped[status];
+          if (!list.length) return null;
+          const meta = getStatusMeta(status);
+          return (
+            <section key={status} className={`task-section task-section--${status}`}>
+              <div className="task-section-heading">
+                <div>
+                  <span className={`section-status-dot section-status-dot--${status}`} aria-hidden="true" />
+                  <h2>{meta.label}</h2>
+                </div>
+                <span className="task-section-count mono">{list.length}</span>
+              </div>
+              <div className="task-list">
+                {list.map((task, index) => (
+                  <TaskCard key={task.id} task={task} onOpen={onOpenTask} index={index} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-// memo: Dashboard re-renders only when its props change.
-// Without this it re-renders on every App.jsx state change (e.g. toast).
 export default memo(Dashboard);

@@ -15,11 +15,7 @@ function LoadingScreen({ onComplete, ready = true }) {
       aria-label="Building your compliance calendar"
     >
       <div className="loading-content fade-in">
-        <div className="loading-logo" aria-hidden="true">
-          <div className="loading-logo-grid">
-            <span></span><span></span><span></span><span></span>
-          </div>
-        </div>
+        <img className="loading-logo" src="/logo-mark.svg" width="64" height="64" alt="" />
         <h1 className="loading-title">Ledgerly</h1>
         <p className="loading-message">
           {ready ? 'Calendar ready. Opening your timeline...' : 'Building your compliance calendar...'}

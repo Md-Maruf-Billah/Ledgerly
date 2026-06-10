@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeftIcon } from './Icons';
+import { ArrowLeftIcon, ArrowRightIcon, StarIcon } from './Icons';
 
 const getInitials = (name) => {
   if (!name?.trim()) return '?';
@@ -31,7 +31,7 @@ const PREFERENCES = [
   },
 ];
 
-function SettingsScreen({ profile, onBack, onLogout, onToast }) {
+function SettingsScreen({ profile, onBack, onLogout, onToast, onOpenPricing }) {
   const [prefs, setPrefs] = useState(() =>
     Object.fromEntries(PREFERENCES.map(({ key, defaultOn }) => [key, defaultOn]))
   );
@@ -97,6 +97,15 @@ function SettingsScreen({ profile, onBack, onLogout, onToast }) {
         </p>
 
         {/* ── Log Out ── */}
+        <button type="button" className="settings-plan-row" onClick={onOpenPricing}>
+          <span className="settings-plan-icon"><StarIcon size={18} /></span>
+          <span>
+            <strong>Ledgerly Free</strong>
+            <small>Compare plans and upcoming features</small>
+          </span>
+          <ArrowRightIcon size={17} />
+        </button>
+
         <div className="settings-footer">
           <button className="btn logout-btn" onClick={onLogout}>Log Out</button>
         </div>

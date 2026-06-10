@@ -219,3 +219,25 @@ export function LogOutIcon({ size, ...p }) {
     </Svg>
   );
 }
+
+export function HomeIcon({ size, ...p }) {
+  return (
+    <Svg size={size} {...p}>
+      <path d="M3 11.5 12 4l9 7.5" />
+      <path d="M5.5 10.5V20h13v-9.5" />
+      <path d="M9.5 20v-6h5v6" />
+    </Svg>
+  );
+}
+
+export function ChartIcon({ size, ...p }) {
+  return (
+    <Svg size={size} {...p}>
+      <path d="M4 19V9" />
+      <path d="M10 19V5" />
+      <path d="M16 19v-7" />
+      <path d="M22 19V3" />
+      <path d="M2 19h22" />
+    </Svg>
+  );
+}

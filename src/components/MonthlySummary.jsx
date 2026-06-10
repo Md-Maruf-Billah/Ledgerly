@@ -7,10 +7,10 @@ function ComplianceBreakdown({ completedCount, overdue, dueSoon, upcoming, activ
   if (total === 0) return null;
 
   const items = [
-    { key: 'completed', label: 'Completed', count: completedCount, color: '#246b45', track: '#dce8df' },
-    { key: 'overdue', label: 'Overdue', count: overdue.length, color: '#a83232', track: '#eadfdb' },
-    { key: 'due-soon', label: 'Due Soon', count: dueSoon.length, color: '#9b681f', track: '#ece4d5' },
-    { key: 'upcoming', label: 'Upcoming', count: upcoming.length, color: '#526273', track: '#dfe4e7' },
+    { key: 'completed', label: 'Completed', count: completedCount },
+    { key: 'overdue', label: 'Overdue', count: overdue.length },
+    { key: 'due-soon', label: 'Due soon', count: dueSoon.length },
+    { key: 'upcoming', label: 'Upcoming', count: upcoming.length },
   ].filter(i => i.count > 0);
   const highest = [...items].sort((a, b) => b.count - a.count)[0];
   const activeItem = items.find((item) => item.key === activeStatus);
@@ -46,16 +46,13 @@ function ComplianceBreakdown({ completedCount, overdue, dueSoon, upcoming, activ
             aria-pressed={isActive}
           >
             <span className="breakdown-label">{item.label}</span>
-            <div className="breakdown-track" style={{ background: item.track }}>
+            <div className={`breakdown-track breakdown-track--${item.key}`}>
               <div
-                className="breakdown-fill"
-                style={{
-                  '--bar-pct': pct / 100,
-                  background: item.color,
-                }}
+                className={`breakdown-fill breakdown-fill--${item.key}`}
+                style={{ '--bar-pct': pct / 100 }}
               />
             </div>
-            <span className="breakdown-count" style={{ color: item.color }}>
+            <span className={`breakdown-count breakdown-count--${item.key}`}>
               {item.count}
               <span className="breakdown-pct"> {pct}%</span>
             </span>
@@ -68,7 +65,7 @@ function ComplianceBreakdown({ completedCount, overdue, dueSoon, upcoming, activ
 
 function buildExportText({ completedTasks, tasks, completedCount, monthLabel }) {
   const lines = [
-    `Ledgerly — ${monthLabel} Summary`,
+    `Ledgerly - ${monthLabel} Summary`,
     `Generated: ${new Date().toLocaleString('en-AU')}`,
     '',
     `Completed this month: ${completedCount}`,
@@ -79,7 +76,7 @@ function buildExportText({ completedTasks, tasks, completedCount, monthLabel }) 
   if (completedTasks.length > 0) {
     lines.push('--- Completed ---');
     completedTasks.forEach(t => {
-      lines.push(`[v] ${t.name} — completed ${t.completedAt}`);
+      lines.push(`[v] ${t.name} - completed ${t.completedAt}`);
     });
     lines.push('');
   }
@@ -87,18 +84,18 @@ function buildExportText({ completedTasks, tasks, completedCount, monthLabel }) 
   const overdue = tasks.filter(t => t.status === 'overdue');
   if (overdue.length > 0) {
     lines.push('--- Overdue ---');
-    overdue.forEach(t => lines.push(`[!] ${t.name} — due ${formatDate(t.dueDate)}`));
+    overdue.forEach(t => lines.push(`[!] ${t.name} - due ${formatDate(t.dueDate)}`));
     lines.push('');
   }
 
   const upcoming = tasks.filter(t => t.status !== 'overdue');
   if (upcoming.length > 0) {
     lines.push('--- Upcoming ---');
-    upcoming.forEach(t => lines.push(`[ ] ${t.name} — due ${formatDate(t.dueDate)}`));
+    upcoming.forEach(t => lines.push(`[ ] ${t.name} - due ${formatDate(t.dueDate)}`));
     lines.push('');
   }
 
-  lines.push('Exported from Ledgerly — ledgerly.app');
+  lines.push('Exported from Ledgerly - ledgerly.app');
   return lines.join('\n');
 }
 

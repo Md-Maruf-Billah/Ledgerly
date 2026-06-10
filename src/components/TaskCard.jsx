@@ -1,59 +1,59 @@
 import React, { memo } from 'react';
+import { ArrowRightIcon, CheckIcon } from './Icons';
 import { formatDate, getDaysLeft } from '../utils/dates';
+import { getStatusMeta } from '../data/status';
 
-function urgencyLabel(task) {
+function getUrgency(task) {
+  if (task.status === 'completed') {
+    return task.completedAt ? `Completed ${task.completedAt}` : 'Completed';
+  }
   const days = getDaysLeft(task.dueDate);
-  if (days === null) return null;
-  if (days < 0) return `${Math.abs(days)}d overdue`;
+  if (days === null) return `${task.steps?.length || 0} steps`;
+  if (days < 0) return `${Math.abs(days)} days overdue`;
   if (days === 0) return 'Due today';
-  if (days === 1) return '1 day left';
-  if (days <= 14) return `${days} days left`;
-  return null;
+  if (days === 1) return '1 day remaining';
+  if (days <= 14) return `${days} days remaining`;
+  return `${task.steps?.length || 0} steps`;
 }
 
-const statusLabel = {
-  overdue:    'Overdue',
-  'due-soon': 'Due Soon',
-  upcoming:   'Upcoming',
-  completed:  'Completed',
-};
-
 function TaskCard({ task, onOpen, index = 0 }) {
-  const isCompleted = task.status === 'completed';
   const steps = Array.isArray(task.steps) ? task.steps : [];
-  const label = isCompleted ? null : urgencyLabel(task);
-  const days = getDaysLeft(task.dueDate);
-  const urgencyHint = isCompleted
-    ? 'completed'
-    : days === null
-    ? 'no due date set'
-    : days < 0
-    ? `${Math.abs(days)} days overdue`
-    : days === 0
-    ? 'due today'
-    : `${days} days remaining`;
+  const meta = getStatusMeta(task.status);
+  const urgency = getUrgency(task);
 
   return (
     <button
-      className={`task-card fade-in-task task-card--${task.status}`}
-      style={{ '--stagger-delay': `${index * 45}ms` }}
+      type="button"
+      className={`task-card task-card--${task.status}`}
+      style={{ '--stagger-delay': `${Math.min(index, 5) * 45}ms` }}
       onClick={() => onOpen(task)}
-      aria-label={`${task.name}, ${urgencyHint}. ${steps.length} steps.`}
+      aria-label={`${task.name}, ${meta.label}. Due ${formatDate(task.dueDate)}. ${steps.length} steps.`}
     >
-      <div className="task-card-body">
-        <h4>{task.name}</h4>
-        <p>Due: {formatDate(task.dueDate)}</p>
-        <small>{isCompleted && task.completedAt ? `Completed ${task.completedAt}` : `${steps.length} steps`}</small>
-        {label && (
-          <span className={`urgency-tag urgency-${task.status}`} aria-hidden="true">{label}</span>
-        )}
-      </div>
-      <span className={`badge ${task.status}`} aria-hidden="true">{statusLabel[task.status] || task.status}</span>
+      <span className="task-card-date" aria-hidden="true">
+        <span className="task-card-date-day mono">
+          {new Date(`${task.dueDate}T00:00:00`).toLocaleDateString('en-AU', { day: '2-digit' })}
+        </span>
+        <span className="task-card-date-month">
+          {new Date(`${task.dueDate}T00:00:00`).toLocaleDateString('en-AU', { month: 'short' })}
+        </span>
+      </span>
+      <span className="task-card-body">
+        <span className="task-card-title">{task.name}</span>
+        <span className="task-card-meta">
+          <span className="mono">Due {formatDate(task.dueDate)}</span>
+          <span aria-hidden="true">•</span>
+          <span>{urgency}</span>
+        </span>
+      </span>
+      <span className={`status-badge status-badge--${task.status}`}>
+        <span className="status-dot" aria-hidden="true" />
+        {meta.label}
+      </span>
+      <span className="task-card-arrow" aria-hidden="true">
+        {task.status === 'completed' ? <CheckIcon size={17} /> : <ArrowRightIcon size={17} />}
+      </span>
     </button>
   );
 }
 
-// memo: TaskCard is a pure presentational component. Without this, every
-// parent state change (toast, notifications, etc.) re-renders all visible
-// task cards even when the task data has not changed.
 export default memo(TaskCard);

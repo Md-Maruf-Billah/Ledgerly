@@ -1,229 +1,215 @@
-import React, { useState } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, CalendarIcon } from './Icons';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CalendarIcon,
+  CheckIcon,
+  ClockIcon,
+} from './Icons';
+import { formatDate } from '../utils/dates';
+import { getStatusMeta, STATUS_ORDER } from '../data/status';
 
 const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-const STATUS_COLOR = {
-  overdue:   '#b02020',
-  'due-soon': '#bf7a10',
-  upcoming:   '#3a68cc',
-  completed:  '#2a8050',
-};
-
-const STATUS_BG = {
-  overdue:   'rgba(176,32,32,0.08)',
-  'due-soon': 'rgba(191,122,16,0.09)',
-  upcoming:   'rgba(58,104,204,0.08)',
-  completed:  'rgba(42,128,80,0.10)',
-};
-
 function CalendarView({ tasks, onBack, onOpenTask }) {
-  const todayDate = new Date();
-  todayDate.setHours(0, 0, 0, 0);
-  const todayMs = todayDate.getTime();
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+  const [viewDate, setViewDate] = useState(
+    () => new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+  const [selectedTask, setSelectedTask] = useState(null);
 
-  const [viewDate, setViewDate] = useState(() => {
-    const d = new Date();
-    d.setDate(1);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  });
-
-  function prevMonth() {
-    setViewDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
-  }
-  function nextMonth() {
-    setViewDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1));
-  }
-  function goToday() {
-    setViewDate(new Date(todayDate.getFullYear(), todayDate.getMonth(), 1));
-  }
-
-  const year  = viewDate.getFullYear();
+  const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-
-  const firstDay    = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  // Monday-based offset: JS 0=Sun → Mon-based: (getDay()+6)%7
-  const startOffset = (firstDay.getDay() + 6) % 7;
-
-  // Build task map keyed by ISO date
-  const taskMap = {};
-  for (const t of tasks) {
-    if (!taskMap[t.dueDate]) taskMap[t.dueDate] = [];
-    taskMap[t.dueDate].push(t);
-  }
-
-  // Calendar cells
-  const cells = [];
-  for (let i = 0; i < startOffset; i++) {
-    cells.push({ type: 'empty', key: `e-${i}` });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const mo = String(month + 1).padStart(2, '0');
-    const dy = String(d).padStart(2, '0');
-    const dateStr = `${year}-${mo}-${dy}`;
-    const cellMs  = new Date(year, month, d).getTime();
-    cells.push({
-      type: 'day',
-      key: dateStr,
-      day: d,
-      dateStr,
-      isToday: cellMs === todayMs,
-      isPast:  cellMs < todayMs,
-      tasks: taskMap[dateStr] || [],
-    });
-  }
-
   const monthLabel = viewDate.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
-  const isCurrentMonthView =
-    todayDate.getFullYear() === year && todayDate.getMonth() === month;
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
 
-  // Summary counts for this view month
-  const allMonthTasks = tasks.filter(t => {
-    const [ty, tm] = t.dueDate.split('-').map(Number);
-    return ty === year && (tm - 1) === month;
-  });
-  const overdueCount  = allMonthTasks.filter(t => t.status === 'overdue').length;
-  const dueSoonCount  = allMonthTasks.filter(t => t.status === 'due-soon').length;
-  const upcomingCount = allMonthTasks.filter(t => t.status === 'upcoming').length;
-  const completedCount = allMonthTasks.filter(t => t.status === 'completed').length;
+  const monthTasks = useMemo(
+    () => tasks
+      .filter((task) => {
+        const date = new Date(`${task.dueDate}T00:00:00`);
+        return date.getFullYear() === year && date.getMonth() === month;
+      })
+      .sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate))),
+    [tasks, year, month]
+  );
+
+  useEffect(() => {
+    setSelectedTask((current) => {
+      if (current && monthTasks.some((task) => task.id === current.id)) return current;
+      return monthTasks[0] || null;
+    });
+  }, [monthTasks]);
+
+  const taskMap = useMemo(() => {
+    const map = {};
+    monthTasks.forEach((task) => {
+      if (!map[task.dueDate]) map[task.dueDate] = [];
+      map[task.dueDate].push(task);
+    });
+    return map;
+  }, [monthTasks]);
+
+  const cells = useMemo(() => {
+    const firstDay = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const result = Array.from({ length: startOffset }, (_, index) => ({
+      type: 'empty',
+      key: `empty-${index}`,
+    }));
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const date = new Date(year, month, day);
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      result.push({
+        type: 'day',
+        key: dateStr,
+        day,
+        dateStr,
+        isToday: date.getTime() === today.getTime(),
+        tasks: taskMap[dateStr] || [],
+      });
+    }
+    return result;
+  }, [year, month, taskMap, today]);
+
+  const counts = Object.fromEntries(
+    STATUS_ORDER.map((status) => [
+      status,
+      monthTasks.filter((task) => task.status === status).length,
+    ])
+  );
+
+  const changeMonth = (offset) => {
+    setViewDate((date) => new Date(date.getFullYear(), date.getMonth() + offset, 1));
+  };
 
   return (
-    <section className="screen fade-in">
-      <div className="calendar-wrap">
-        <div className="cal-top-row">
-          <button type="button" className="btn btn-secondary back-btn" onClick={onBack}>
-            <ArrowLeftIcon size={16} /> Back
+    <section className="screen calendar-screen fade-in">
+      <header className="page-header calendar-page-header">
+        <div>
+          <button type="button" className="back-link page-back-link" onClick={onBack}>
+            <ArrowLeftIcon size={15} /> Overview
           </button>
-          <h2 className="cal-heading">
-            <CalendarIcon size={18} />
-            Compliance Calendar
-          </h2>
+          <p className="eyebrow">Planner canvas</p>
+          <h1>Compliance calendar</h1>
+          <p className="page-intro">See the shape of the month, then focus on one obligation at a time.</p>
         </div>
+      </header>
 
-        {/* Month strip summary */}
-        {allMonthTasks.length > 0 && (
-          <div className="cal-month-summary">
-            {overdueCount > 0 && (
-              <span className="cal-summary-pill cal-summary-pill--overdue">
-                {overdueCount} overdue
-              </span>
-            )}
-            {dueSoonCount > 0 && (
-              <span className="cal-summary-pill cal-summary-pill--soon">
-                {dueSoonCount} due soon
-              </span>
-            )}
-            {upcomingCount > 0 && (
-              <span className="cal-summary-pill cal-summary-pill--upcoming">
-                {upcomingCount} upcoming
-              </span>
-            )}
-            {completedCount > 0 && (
-              <span className="cal-summary-pill cal-summary-pill--completed">
-                {completedCount} completed
-              </span>
-            )}
-          </div>
-        )}
-        {allMonthTasks.length === 0 && (
-          <div className="cal-month-summary">
-            <span className="cal-summary-empty">No obligations this month</span>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="cal-nav">
-          <button type="button" className="cal-nav-btn" onClick={prevMonth} aria-label="Previous month">
-            <ArrowLeftIcon size={15} />
+      <div className="calendar-toolbar">
+        <div className="calendar-navigation">
+          <button type="button" className="icon-btn" onClick={() => changeMonth(-1)} aria-label="Previous month">
+            <ArrowLeftIcon size={18} />
           </button>
-          <div className="cal-nav-center">
-            <span className="cal-month-label">{monthLabel}</span>
-            {!isCurrentMonthView && (
-              <button type="button" className="cal-today-btn" onClick={goToday}>
-                Today
-              </button>
-            )}
+          <div>
+            <span className="calendar-month-label">{monthLabel}</span>
+            <span className="calendar-month-meta mono">{monthTasks.length} obligations</span>
           </div>
-          <button type="button" className="cal-nav-btn" onClick={nextMonth} aria-label="Next month">
-            <ArrowRightIcon size={15} />
+          <button type="button" className="icon-btn" onClick={() => changeMonth(1)} aria-label="Next month">
+            <ArrowRightIcon size={18} />
           </button>
         </div>
+        {!isCurrentMonth && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-compact"
+            onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
+          >
+            Today
+          </button>
+        )}
+        <div className="calendar-status-summary" aria-label="Month status counts">
+          {STATUS_ORDER.map((status) => {
+            if (!counts[status]) return null;
+            return (
+              <span key={status} className={`calendar-summary-item calendar-summary-item--${status}`}>
+                <span className="status-dot" aria-hidden="true" />
+                <span>{getStatusMeta(status).label}</span>
+                <strong className="mono">{counts[status]}</strong>
+              </span>
+            );
+          })}
+        </div>
+      </div>
 
-        {/* Grid */}
-        <div className="cal-grid-wrap">
-          <div className="cal-grid">
-            {/* Day-of-week headers */}
-            {DOW.map(d => (
-              <div key={d} className="cal-dow">{d}</div>
+      <div className="planner-layout">
+        <div className="calendar-canvas">
+          <div className="calendar-grid" role="grid" aria-label={`${monthLabel} calendar`}>
+            {DOW.map((day) => (
+              <div key={day} className="calendar-dow" role="columnheader">{day}</div>
             ))}
-
-            {/* Cells */}
-            {cells.map(cell => {
+            {cells.map((cell) => {
               if (cell.type === 'empty') {
-                return <div key={cell.key} className="cal-cell cal-cell--empty" />;
+                return <div key={cell.key} className="calendar-cell calendar-cell--empty" role="gridcell" />;
               }
               return (
                 <div
                   key={cell.key}
-                  className={[
-                    'cal-cell',
-                    cell.isToday  ? 'cal-cell--today'     : '',
-                    cell.isPast   ? 'cal-cell--past'      : '',
-                    cell.tasks.length > 0 ? 'cal-cell--has-tasks' : '',
-                  ].filter(Boolean).join(' ')}
+                  className={`calendar-cell${cell.isToday ? ' calendar-cell--today' : ''}${cell.tasks.length ? ' calendar-cell--active' : ''}`}
+                  role="gridcell"
                 >
-                  <span className="cal-day-num">{cell.day}</span>
-                  {cell.tasks.length > 0 && (
-                    <div className="cal-task-pills">
-                      {cell.tasks.map(task => (
-                        <button
-                          key={task.id}
-                          type="button"
-                          className="cal-task-pill"
-                          data-status={task.status}
-                          style={{
-                            background: STATUS_BG[task.status] || 'rgba(0,0,0,0.05)',
-                            color: STATUS_COLOR[task.status] || '#555',
-                          }}
-                          onClick={() => onOpenTask(task)}
-                          title={task.name}
-                        >
-                          <span
-                            className="cal-task-dot"
-                            style={{ background: STATUS_COLOR[task.status] || '#888' }}
-                          />
-                          <span className="cal-task-name">{task.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <span className="calendar-day mono">{cell.day}</span>
+                  <div className="calendar-cell-tasks">
+                    {cell.tasks.map((task) => (
+                      <button
+                        key={task.id}
+                        type="button"
+                        className={`calendar-task calendar-task--${task.status}${selectedTask?.id === task.id ? ' calendar-task--selected' : ''}`}
+                        onClick={() => setSelectedTask(task)}
+                        aria-pressed={selectedTask?.id === task.id}
+                        aria-label={`${task.name}, ${getStatusMeta(task.status).label}, due ${formatDate(task.dueDate)}`}
+                      >
+                        <span className="status-dot" aria-hidden="true" />
+                        <span>{task.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="cal-legend">
-          <span className="cal-legend-item">
-            <span className="cal-legend-dot" style={{ background: '#b02020' }} />
-            Overdue
-          </span>
-          <span className="cal-legend-item">
-            <span className="cal-legend-dot" style={{ background: '#bf7a10' }} />
-            Due Soon
-          </span>
-          <span className="cal-legend-item">
-            <span className="cal-legend-dot" style={{ background: '#3a68cc' }} />
-            Upcoming
-          </span>
-          <span className="cal-legend-item">
-            <span className="cal-legend-dot" style={{ background: '#2a8050' }} />
-            Completed
-          </span>
-        </div>
+        <aside className="calendar-focus" aria-live="polite">
+          {selectedTask ? (
+            <>
+              <div className="calendar-focus-heading">
+                <div>
+                  <p className="eyebrow">Focus</p>
+                  <span className={`status-badge status-badge--${selectedTask.status}`}>
+                    <span className="status-dot" aria-hidden="true" />
+                    {getStatusMeta(selectedTask.status).label}
+                  </span>
+                </div>
+                <CalendarIcon size={22} />
+              </div>
+              <h2>{selectedTask.name}</h2>
+              <p className="calendar-focus-description">{selectedTask.description || 'Open the checklist for guidance and a completion record.'}</p>
+              <div className="calendar-focus-meta">
+                <span><CalendarIcon size={15} /> Due {formatDate(selectedTask.dueDate)}</span>
+                <span><ClockIcon size={15} /> {selectedTask.steps?.length || 0} guided steps</span>
+                {selectedTask.status === 'completed' && selectedTask.completedAt && (
+                  <span><CheckIcon size={15} /> Completed {selectedTask.completedAt}</span>
+                )}
+              </div>
+              <button type="button" className="btn btn-primary btn-full" onClick={() => onOpenTask(selectedTask)}>
+                {selectedTask.status === 'completed' ? 'View record' : 'Open checklist'}
+                <ArrowRightIcon size={16} />
+              </button>
+            </>
+          ) : (
+            <div className="calendar-focus-empty">
+              <CalendarIcon size={28} />
+              <h2>No obligations this month</h2>
+              <p>Move to another month or add a task when a new date needs tracking.</p>
+            </div>
+          )}
+        </aside>
       </div>
     </section>
   );

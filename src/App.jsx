@@ -14,12 +14,22 @@ import Notifications from './components/Notifications';
 import CustomTaskModal from './components/CustomTaskModal';
 import CalendarView from './components/CalendarView';
 import OnboardingTour from './components/OnboardingTour';
+import AppShell from './components/AppShell';
 import { businessTypeTasks, demoUserProfile } from './data/tasks';
 import { formatDate, computeTaskStatus, recomputeStatuses } from './utils/dates';
 import { loadState, saveState, STORAGE_KEY } from './utils/storage';
 import * as api from './utils/api';
 
 const initialProfile = { fullName: '', businessName: '', email: '', state: '', type: '' };
+const WORKSPACE_SCREENS = new Set([
+  'dashboard',
+  'calendar',
+  'summary',
+  'notifications',
+  'settings',
+  'pricing',
+  'confirmation',
+]);
 
 // ─── Demo-only notification generator (no backend) ───────────────────────────
 function generateDemoNotifications(taskList, profile) {
@@ -163,6 +173,10 @@ function App() {
     if (!ready || !isDemoMode) return;
     saveState({ isDemoMode, currentScreen, userProfile, tasks, completedTasks, completedThisMonth, notifications });
   }, [ready, isDemoMode, currentScreen, userProfile, tasks, completedTasks, completedThisMonth, notifications]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentScreen]);
 
   // ─── Toast helper ───────────────────────────────────────────────────────────
   const showToast = (message, type = 'success') => {
@@ -377,7 +391,67 @@ function App() {
     [tasks]
   );
 
+  const handleNavigate = useCallback((screen) => {
+    if (screen === 'notifications') markAllRead();
+    setCurrentScreen(screen);
+  }, [markAllRead]);
+
   if (!ready) return null;
+
+  const workspaceContent = (
+    <>
+      {currentScreen === 'dashboard' && (
+        <Dashboard
+          userProfile={userProfile}
+          tasks={tasks}
+          completedCount={completedThisMonth}
+          onOpenTask={handleOpenTask}
+          onOpenSummary={() => handleNavigate('summary')}
+        />
+      )}
+      {currentScreen === 'confirmation' && (
+        <ConfirmationScreen
+          completedCount={completedThisMonth}
+          onBackToTimeline={() => handleNavigate('dashboard')}
+          onViewSummary={() => handleNavigate('summary')}
+        />
+      )}
+      {currentScreen === 'summary' && (
+        <MonthlySummary
+          onBack={() => handleNavigate('dashboard')}
+          completedCount={completedThisMonth}
+          tasks={pendingTasks}
+          completedTasks={completedTasks}
+          onExportSuccess={() => showToast('Summary exported successfully')}
+        />
+      )}
+      {currentScreen === 'settings' && (
+        <SettingsScreen
+          profile={userProfile}
+          onBack={() => handleNavigate('dashboard')}
+          onLogout={handleLogout}
+          onToast={showToast}
+          onOpenPricing={() => handleNavigate('pricing')}
+        />
+      )}
+      {currentScreen === 'notifications' && (
+        <Notifications
+          notifications={notifications}
+          onBack={() => handleNavigate('dashboard')}
+        />
+      )}
+      {currentScreen === 'pricing' && (
+        <PricingPlans onBack={() => handleNavigate('dashboard')} />
+      )}
+      {currentScreen === 'calendar' && (
+        <CalendarView
+          tasks={tasks}
+          onBack={() => handleNavigate('dashboard')}
+          onOpenTask={handleOpenTask}
+        />
+      )}
+    </>
+  );
 
   return (
     <main className="app-shell" id="main-content">
@@ -431,60 +505,16 @@ function App() {
           onContinue={() => setCurrentScreen('dashboard')}
         />
       )}
-      {currentScreen === 'dashboard' && (
-        <Dashboard
-          userProfile={userProfile}
-          tasks={tasks}
-          completedCount={completedThisMonth}
-          onOpenTask={handleOpenTask}
-          onOpenSummary={() => setCurrentScreen('summary')}
-          onOpenSettings={() => setCurrentScreen('settings')}
-          onOpenNotifications={() => { markAllRead(); setCurrentScreen('notifications'); }}
-          onOpenPricing={() => setCurrentScreen('pricing')}
-          onOpenCalendar={() => setCurrentScreen('calendar')}
-          onAddTask={() => setShowCustomModal(true)}
+      {WORKSPACE_SCREENS.has(currentScreen) && (
+        <AppShell
+          activeScreen={currentScreen}
+          onNavigate={handleNavigate}
           unreadCount={unreadCount}
-        />
-      )}
-      {currentScreen === 'confirmation' && (
-        <ConfirmationScreen
-          completedCount={completedThisMonth}
-          onBackToTimeline={() => setCurrentScreen('dashboard')}
-          onViewSummary={() => setCurrentScreen('summary')}
-        />
-      )}
-      {currentScreen === 'summary' && (
-        <MonthlySummary
-          onBack={() => setCurrentScreen('dashboard')}
-          completedCount={completedThisMonth}
-          tasks={pendingTasks}
-          completedTasks={completedTasks}
-          onExportSuccess={() => showToast('Summary exported successfully')}
-        />
-      )}
-      {currentScreen === 'settings' && (
-        <SettingsScreen
+          onAddTask={() => setShowCustomModal(true)}
           profile={userProfile}
-          onBack={() => setCurrentScreen('dashboard')}
-          onLogout={handleLogout}
-          onToast={showToast}
-        />
-      )}
-      {currentScreen === 'notifications' && (
-        <Notifications
-          notifications={notifications}
-          onBack={() => setCurrentScreen('dashboard')}
-        />
-      )}
-      {currentScreen === 'pricing' && (
-        <PricingPlans onBack={() => setCurrentScreen('dashboard')} />
-      )}
-      {currentScreen === 'calendar' && (
-        <CalendarView
-          tasks={tasks}
-          onBack={() => setCurrentScreen('dashboard')}
-          onOpenTask={handleOpenTask}
-        />
+        >
+          {workspaceContent}
+        </AppShell>
       )}
 
       <TaskDetailPanel task={selectedTask} onClose={handleCloseTask} onMarkDone={handleMarkDone} />
