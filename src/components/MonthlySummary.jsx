@@ -91,7 +91,7 @@ function MonthlySummary({
     try {
       await new Promise((resolve) => window.requestAnimationFrame(resolve));
       const { generateCompliancePdf } = await import('../utils/pdfReport.js');
-      generateCompliancePdf({
+      await generateCompliancePdf({
         tasks,
         completedTasks,
         completedCount,

@@ -32,6 +32,8 @@ const PAGE = {
   margin: 18,
 };
 
+let logoDataUrlPromise;
+
 function setFill(doc, colour) {
   doc.setFillColor(...colour);
 }
@@ -44,13 +46,50 @@ function setDraw(doc, colour) {
   doc.setDrawColor(...colour);
 }
 
-function drawBrandMark(doc, x, y) {
-  setFill(doc, COLOURS.clay);
-  doc.roundedRect(x, y, 12, 12, 3.2, 3.2, 'F');
-  setDraw(doc, COLOURS.surface);
-  doc.setLineWidth(0.7);
-  doc.circle(x + 6, y + 6, 3.2, 'S');
-  doc.line(x + 3.2, y + 6, x + 8.8, y + 6);
+function loadLogoDataUrl() {
+  if (logoDataUrlPromise) return logoDataUrlPromise;
+
+  logoDataUrlPromise = fetch('/logo-mark.svg')
+    .then((response) => {
+      if (!response.ok) throw new Error('Ledgerly logo could not be loaded.');
+      return response.text();
+    })
+    .then((svgText) => new Promise((resolve, reject) => {
+      const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+      const objectUrl = URL.createObjectURL(blob);
+      const image = new Image();
+
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 384;
+        canvas.height = 384;
+        const context = canvas.getContext('2d');
+
+        if (!context) {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('Ledgerly logo could not be rendered.'));
+          return;
+        }
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(objectUrl);
+        resolve(canvas.toDataURL('image/png'));
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Ledgerly logo could not be rendered.'));
+      };
+
+      image.src = objectUrl;
+    }));
+
+  return logoDataUrlPromise;
+}
+
+function drawBrandMark(doc, x, y, logoDataUrl) {
+  doc.addImage(logoDataUrl, 'PNG', x, y, 12, 12, 'ledgerly-logo', 'FAST');
 }
 
 function drawPageBase(doc, pageNumber, generatedLabel) {
@@ -154,7 +193,7 @@ function drawInsight(doc, x, y, width, completionRate, overdueCount) {
   doc.text(lines, x + 6, y + 13, { lineHeightFactor: 1.35 });
 }
 
-export function createCompliancePdf({
+export async function createCompliancePdf({
   tasks = [],
   completedTasks = [],
   completedCount = 0,
@@ -185,10 +224,11 @@ export function createCompliancePdf({
   const priorityTasks = getPriorityTasks(tasks);
   const businessName = profile.businessName || 'Your business';
   const businessMeta = [profile.type, profile.state].filter(Boolean).join('  /  ');
+  const logoDataUrl = await loadLogoDataUrl();
 
   drawPageBase(doc, 1, `Generated ${generatedLabel}`);
 
-  drawBrandMark(doc, PAGE.margin, 18);
+  drawBrandMark(doc, PAGE.margin, 18, logoDataUrl);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   setText(doc, COLOURS.ink);
@@ -283,7 +323,7 @@ export function createCompliancePdf({
     doc.addPage();
     drawPageBase(doc, 2, `Generated ${generatedLabel}`);
 
-    drawBrandMark(doc, PAGE.margin, 18);
+    drawBrandMark(doc, PAGE.margin, 18, logoDataUrl);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     setText(doc, COLOURS.ink);
@@ -349,7 +389,7 @@ export function createCompliancePdf({
   };
 }
 
-export function generateCompliancePdf(options) {
-  const { doc, fileName } = createCompliancePdf(options);
+export async function generateCompliancePdf(options) {
+  const { doc, fileName } = await createCompliancePdf(options);
   doc.save(fileName);
 }
