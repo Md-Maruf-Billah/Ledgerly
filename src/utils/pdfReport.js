@@ -32,8 +32,6 @@ const PAGE = {
   margin: 18,
 };
 
-let logoDataUrlPromise;
-
 function setFill(doc, colour) {
   doc.setFillColor(...colour);
 }
@@ -46,50 +44,31 @@ function setDraw(doc, colour) {
   doc.setDrawColor(...colour);
 }
 
-function loadLogoDataUrl() {
-  if (logoDataUrlPromise) return logoDataUrlPromise;
+function drawBrandMark(doc, x, y, size = 12) {
+  const scale = size / 96;
+  const point = (value) => value * scale;
 
-  logoDataUrlPromise = fetch('/logo-mark.svg')
-    .then((response) => {
-      if (!response.ok) throw new Error('Ledgerly logo could not be loaded.');
-      return response.text();
-    })
-    .then((svgText) => new Promise((resolve, reject) => {
-      const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-      const objectUrl = URL.createObjectURL(blob);
-      const image = new Image();
+  setFill(doc, COLOURS.clay);
+  doc.roundedRect(x, y, size, size, point(24), point(24), 'F');
 
-      image.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 384;
-        canvas.height = 384;
-        const context = canvas.getContext('2d');
+  doc.setLineCap('round');
+  doc.setLineJoin('round');
+  doc.setLineWidth(point(3));
+  doc.setDrawColor(255, 250, 245);
+  doc.setGState(new doc.GState({ opacity: 0.22 }));
+  doc.line(x + point(24), y + point(40), x + point(72), y + point(40));
+  doc.line(x + point(24), y + point(56), x + point(72), y + point(56));
 
-        if (!context) {
-          URL.revokeObjectURL(objectUrl);
-          reject(new Error('Ledgerly logo could not be rendered.'));
-          return;
-        }
-
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(objectUrl);
-        resolve(canvas.toDataURL('image/png'));
-      };
-
-      image.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
-        reject(new Error('Ledgerly logo could not be rendered.'));
-      };
-
-      image.src = objectUrl;
-    }));
-
-  return logoDataUrlPromise;
-}
-
-function drawBrandMark(doc, x, y, logoDataUrl) {
-  doc.addImage(logoDataUrl, 'PNG', x, y, 12, 12, 'ledgerly-logo', 'FAST');
+  doc.setGState(new doc.GState({ opacity: 1 }));
+  doc.setLineWidth(point(8));
+  doc.lines(
+    [
+      [point(11), point(10.5)],
+      [point(26), point(-30)],
+    ],
+    x + point(33),
+    y + point(55.5)
+  );
 }
 
 function drawPageBase(doc, pageNumber, generatedLabel) {
@@ -224,11 +203,9 @@ export async function createCompliancePdf({
   const priorityTasks = getPriorityTasks(tasks);
   const businessName = profile.businessName || 'Your business';
   const businessMeta = [profile.type, profile.state].filter(Boolean).join('  /  ');
-  const logoDataUrl = await loadLogoDataUrl();
-
   drawPageBase(doc, 1, `Generated ${generatedLabel}`);
 
-  drawBrandMark(doc, PAGE.margin, 18, logoDataUrl);
+  drawBrandMark(doc, PAGE.margin, 18);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   setText(doc, COLOURS.ink);
@@ -323,7 +300,7 @@ export async function createCompliancePdf({
     doc.addPage();
     drawPageBase(doc, 2, `Generated ${generatedLabel}`);
 
-    drawBrandMark(doc, PAGE.margin, 18, logoDataUrl);
+    drawBrandMark(doc, PAGE.margin, 18);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     setText(doc, COLOURS.ink);
