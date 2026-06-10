@@ -538,36 +538,36 @@ select {
   inset: 50%;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(255, 250, 245, 0.2);
+  border: 1px solid rgba(255, 250, 245, 0.18);
   border-radius: 50%;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.34);
-  animation: login-ripple 7.2s var(--ease-out) infinite;
+  transform: translate(-50%, -50%) scale(0.2);
+  will-change: transform, opacity;
+  animation: login-ripple 6.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .login-ripple span:nth-child(2) {
-  animation-delay: 2.4s;
+  animation-delay: -2.2s;
 }
 
 .login-ripple span:nth-child(3) {
-  animation-delay: 4.8s;
+  animation-delay: -4.4s;
 }
 
 @keyframes login-ripple {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.34);
+    transform: translate(-50%, -50%) scale(0.2);
   }
-  12% {
-    opacity: 0.42;
+  10% {
+    opacity: 0.34;
   }
-  58% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1);
+  72% {
+    opacity: 0.05;
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1.08);
   }
 }
 
