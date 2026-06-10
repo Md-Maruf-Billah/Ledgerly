@@ -428,7 +428,9 @@ function App() {
           completedCount={completedThisMonth}
           tasks={pendingTasks}
           completedTasks={completedTasks}
-          onExportSuccess={() => showToast('Summary exported successfully')}
+          profile={userProfile}
+          onExportSuccess={() => showToast('PDF report downloaded')}
+          onExportError={() => showToast('Could not generate the PDF report', 'error')}
           onOpenTask={handleOpenTask}
         />
       )}

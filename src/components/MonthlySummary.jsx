@@ -63,48 +63,14 @@ function ComplianceBreakdown({ completedCount, overdue, dueSoon, upcoming, activ
   );
 }
 
-function buildExportText({ completedTasks, tasks, completedCount, monthLabel }) {
-  const lines = [
-    `Ledgerly - Compliance Plan Summary (${monthLabel})`,
-    `Generated: ${new Date().toLocaleString('en-AU')}`,
-    '',
-    `Completed this month: ${completedCount}`,
-    `Pending tasks: ${tasks.length}`,
-    '',
-  ];
-
-  if (completedTasks.length > 0) {
-    lines.push('--- Completed ---');
-    completedTasks.forEach(t => {
-      lines.push(`[v] ${t.name} - completed ${t.completedAt}`);
-    });
-    lines.push('');
-  }
-
-  const overdue = tasks.filter(t => t.status === 'overdue');
-  if (overdue.length > 0) {
-    lines.push('--- Overdue ---');
-    overdue.forEach(t => lines.push(`[!] ${t.name} - due ${formatDate(t.dueDate)}`));
-    lines.push('');
-  }
-
-  const upcoming = tasks.filter(t => t.status !== 'overdue');
-  if (upcoming.length > 0) {
-    lines.push('--- Upcoming ---');
-    upcoming.forEach(t => lines.push(`[ ] ${t.name} - due ${formatDate(t.dueDate)}`));
-    lines.push('');
-  }
-
-  lines.push('Exported from Ledgerly - ledgerly.app');
-  return lines.join('\n');
-}
-
 function MonthlySummary({
   onBack,
   completedCount = 0,
   tasks = [],
   completedTasks = [],
+  profile = {},
   onExportSuccess,
+  onExportError,
   onOpenTask,
 }) {
   const monthLabel = new Date().toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
@@ -114,21 +80,30 @@ function MonthlySummary({
   const total = completedCount + tasks.length;
   const completionRate = total > 0 ? Math.round((completedCount / total) * 100) : 0;
   const [activeStatus, setActiveStatus] = useState('all');
+  const [isExporting, setIsExporting] = useState(false);
   const showCompleted = activeStatus === 'all' || activeStatus === 'completed';
   const showOverdue = activeStatus === 'all' || activeStatus === 'overdue';
   const showDueSoon = activeStatus === 'all' || activeStatus === 'due-soon';
   const showUpcoming = activeStatus === 'all' || activeStatus === 'upcoming';
 
-  const handleExport = () => {
-    const text = buildExportText({ completedTasks, tasks, completedCount, monthLabel });
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ledgerly-plan-summary-${monthLabel.replace(' ', '-').toLowerCase()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    onExportSuccess?.();
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await new Promise((resolve) => window.requestAnimationFrame(resolve));
+      const { generateCompliancePdf } = await import('../utils/pdfReport.js');
+      generateCompliancePdf({
+        tasks,
+        completedTasks,
+        completedCount,
+        profile,
+      });
+      onExportSuccess?.();
+    } catch (error) {
+      console.error('Could not generate PDF report.', error);
+      onExportError?.();
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -138,8 +113,15 @@ function MonthlySummary({
           <button type="button" className="btn btn-secondary back-btn" onClick={onBack}>
             <ArrowLeftIcon size={16} /> Back
           </button>
-          <button type="button" className="btn-export" onClick={handleExport}>
-            <DownloadIcon size={14} /> Export TXT
+          <button
+            type="button"
+            className="btn-export"
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            {isExporting
+              ? <><span className="btn-spinner btn-spinner--ink" aria-hidden="true" /> Preparing PDF</>
+              : <><DownloadIcon size={14} /> Download PDF</>}
           </button>
         </div>
 

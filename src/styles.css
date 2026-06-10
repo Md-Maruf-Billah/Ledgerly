@@ -3555,6 +3555,18 @@ button.next-obligation:active {
   font-weight: 750;
 }
 
+.btn-export:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.btn-spinner--ink {
+  width: 14px;
+  height: 14px;
+  border-color: color-mix(in srgb, var(--ink-500) 30%, transparent);
+  border-top-color: var(--ink-700);
+}
+
 .notif-text {
   margin: 4px 0;
   color: var(--ink-500);
