@@ -50,6 +50,12 @@ function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
   return (
     <section className="login-screen">
       <aside className="login-story">
+        <span className="login-ripple" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+
         <div className="login-brand-lockup">
           <img src="/logo-mark-light.svg" width="42" height="42" alt="" />
           <span>Ledgerly</span>

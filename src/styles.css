@@ -523,9 +523,62 @@ select {
   pointer-events: none;
 }
 
+.login-ripple {
+  position: absolute;
+  z-index: 0;
+  width: 190px;
+  height: 190px;
+  right: clamp(28px, 7vw, 96px);
+  top: clamp(90px, 16vh, 170px);
+  pointer-events: none;
+}
+
+.login-ripple span {
+  position: absolute;
+  inset: 50%;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 250, 245, 0.2);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.34);
+  animation: login-ripple 7.2s var(--ease-out) infinite;
+}
+
+.login-ripple span:nth-child(2) {
+  animation-delay: 2.4s;
+}
+
+.login-ripple span:nth-child(3) {
+  animation-delay: 4.8s;
+}
+
+@keyframes login-ripple {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.34);
+  }
+  12% {
+    opacity: 0.42;
+  }
+  58% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 .login-story > * {
   position: relative;
   z-index: 1;
+}
+
+.login-story > .login-ripple {
+  position: absolute;
+  z-index: 0;
 }
 
 .login-brand-lockup,
@@ -767,6 +820,12 @@ select {
     height: 100dvh;
     padding: clamp(22px, 4vh, 36px) clamp(30px, 5vw, 64px);
     gap: clamp(12px, 2vh, 20px);
+  }
+
+  .login-ripple {
+    width: 150px;
+    height: 150px;
+    top: clamp(72px, 14vh, 118px);
   }
 
   .login-brand-lockup img {
@@ -5235,7 +5294,8 @@ button.next-obligation:active {
 
   .obligation-motion,
   .calendar-focus-motif,
-  .tour-orbit {
+  .tour-orbit,
+  .login-ripple {
     display: none;
   }
 }
