@@ -27,6 +27,7 @@ function NavButton({ item, activeScreen, onNavigate, unreadCount }) {
       className={`shell-nav-item${isActive ? ' shell-nav-item--active' : ''}`}
       onClick={() => onNavigate(item.screen)}
       aria-current={isActive ? 'page' : undefined}
+      aria-label={item.label}
     >
       <span className="shell-nav-icon">
         <Icon size={20} />
@@ -78,6 +79,7 @@ function AppShell({
             className={`shell-nav-item${activeScreen === 'pricing' ? ' shell-nav-item--active' : ''}`}
             onClick={() => onNavigate('pricing')}
             aria-current={activeScreen === 'pricing' ? 'page' : undefined}
+            aria-label="Plan"
           >
             <span className="shell-nav-icon"><StarIcon size={20} /></span>
             <span>Plan</span>
@@ -144,6 +146,7 @@ function AppShell({
           className={`shell-nav-item${['settings', 'pricing'].includes(activeScreen) ? ' shell-nav-item--active' : ''}`}
           onClick={() => onNavigate('settings')}
           aria-current={activeScreen === 'settings' ? 'page' : undefined}
+          aria-label="More"
         >
           <span className="shell-nav-icon"><SettingsIcon size={20} /></span>
           <span>More</span>

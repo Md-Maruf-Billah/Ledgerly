@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { formatDate } from '../utils/dates';
-import { CheckIcon, AlertIcon, ClockIcon, ArrowLeftIcon, DownloadIcon } from './Icons';
+import { CheckIcon, AlertIcon, ClockIcon, ArrowLeftIcon, ArrowRightIcon, DownloadIcon } from './Icons';
 
 function ComplianceBreakdown({ completedCount, overdue, dueSoon, upcoming, activeStatus, onSelectStatus }) {
   const total = completedCount + overdue.length + dueSoon.length + upcoming.length;
@@ -65,7 +65,7 @@ function ComplianceBreakdown({ completedCount, overdue, dueSoon, upcoming, activ
 
 function buildExportText({ completedTasks, tasks, completedCount, monthLabel }) {
   const lines = [
-    `Ledgerly - ${monthLabel} Summary`,
+    `Ledgerly - Compliance Plan Summary (${monthLabel})`,
     `Generated: ${new Date().toLocaleString('en-AU')}`,
     '',
     `Completed this month: ${completedCount}`,
@@ -99,7 +99,14 @@ function buildExportText({ completedTasks, tasks, completedCount, monthLabel }) 
   return lines.join('\n');
 }
 
-function MonthlySummary({ onBack, completedCount = 0, tasks = [], completedTasks = [], onExportSuccess }) {
+function MonthlySummary({
+  onBack,
+  completedCount = 0,
+  tasks = [],
+  completedTasks = [],
+  onExportSuccess,
+  onOpenTask,
+}) {
   const monthLabel = new Date().toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
   const overdue  = tasks.filter((t) => t.status === 'overdue');
   const dueSoon  = tasks.filter((t) => t.status === 'due-soon');
@@ -118,7 +125,7 @@ function MonthlySummary({ onBack, completedCount = 0, tasks = [], completedTasks
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ledgerly-summary-${monthLabel.replace(' ', '-').toLowerCase()}.txt`;
+    a.download = `ledgerly-plan-summary-${monthLabel.replace(' ', '-').toLowerCase()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     onExportSuccess?.();
@@ -136,21 +143,37 @@ function MonthlySummary({ onBack, completedCount = 0, tasks = [], completedTasks
           </button>
         </div>
 
-        <h2>{monthLabel} Summary</h2>
+        <h2>Compliance Plan Summary</h2>
+        <p className="summary-period">Updated {monthLabel}</p>
 
         <div className="stats-row">
-          <article className="stat-card complete">
+          <button
+            type="button"
+            className={`stat-card complete${activeStatus === 'completed' ? ' stat-card--active' : ''}`}
+            onClick={() => setActiveStatus(activeStatus === 'completed' ? 'all' : 'completed')}
+            aria-pressed={activeStatus === 'completed'}
+          >
             <strong>{completedCount}</strong>
             <span>Completed</span>
-          </article>
-          <article className="stat-card overdue">
+          </button>
+          <button
+            type="button"
+            className={`stat-card overdue${activeStatus === 'overdue' ? ' stat-card--active' : ''}`}
+            onClick={() => setActiveStatus(activeStatus === 'overdue' ? 'all' : 'overdue')}
+            aria-pressed={activeStatus === 'overdue'}
+          >
             <strong>{overdue.length}</strong>
             <span>Overdue</span>
-          </article>
-          <article className="stat-card pending">
-            <strong>{dueSoon.length + upcoming.length}</strong>
+          </button>
+          <button
+            type="button"
+            className={`stat-card pending${activeStatus === 'upcoming' ? ' stat-card--active' : ''}`}
+            onClick={() => setActiveStatus(activeStatus === 'upcoming' ? 'all' : 'upcoming')}
+            aria-pressed={activeStatus === 'upcoming'}
+          >
+            <strong>{upcoming.length}</strong>
             <span>Upcoming</span>
-          </article>
+          </button>
         </div>
 
         {total > 0 && (
@@ -188,10 +211,16 @@ function MonthlySummary({ onBack, completedCount = 0, tasks = [], completedTasks
                 <CheckIcon size={11} strokeWidth={3} /> Completed
               </h4>
               {completedTasks.map((t) => (
-                <p key={t.id + t.completedAt} className="summary-task-row">
+                <button
+                  type="button"
+                  key={t.id + t.completedAt}
+                  className="summary-task-row"
+                  onClick={() => onOpenTask?.(t)}
+                >
                   <span className="summary-task-name">{t.name}</span>
                   <span className="summary-task-date">{t.completedAt}</span>
-                </p>
+                  <ArrowRightIcon size={14} />
+                </button>
               ))}
             </div>
           )}
@@ -211,10 +240,11 @@ function MonthlySummary({ onBack, completedCount = 0, tasks = [], completedTasks
                 <AlertIcon size={11} /> Overdue
               </h4>
               {overdue.map((t) => (
-                <p key={t.id} className="summary-task-row">
+                <button type="button" key={t.id} className="summary-task-row" onClick={() => onOpenTask?.(t)}>
                   <span className="summary-task-name">{t.name}</span>
                   <span className="summary-task-date">Due {formatDate(t.dueDate)}</span>
-                </p>
+                  <ArrowRightIcon size={14} />
+                </button>
               ))}
             </div>
           )}
@@ -225,10 +255,11 @@ function MonthlySummary({ onBack, completedCount = 0, tasks = [], completedTasks
                 <ClockIcon size={11} /> Due Soon
               </h4>
               {dueSoon.map((t) => (
-                <p key={t.id} className="summary-task-row">
+                <button type="button" key={t.id} className="summary-task-row" onClick={() => onOpenTask?.(t)}>
                   <span className="summary-task-name">{t.name}</span>
                   <span className="summary-task-date">Due {formatDate(t.dueDate)}</span>
-                </p>
+                  <ArrowRightIcon size={14} />
+                </button>
               ))}
             </div>
           )}
@@ -239,10 +270,11 @@ function MonthlySummary({ onBack, completedCount = 0, tasks = [], completedTasks
                 <ClockIcon size={11} /> Upcoming
               </h4>
               {upcoming.map((t) => (
-                <p key={t.id} className="summary-task-row">
+                <button type="button" key={t.id} className="summary-task-row" onClick={() => onOpenTask?.(t)}>
                   <span className="summary-task-name">{t.name}</span>
                   <span className="summary-task-date">Due {formatDate(t.dueDate)}</span>
-                </p>
+                  <ArrowRightIcon size={14} />
+                </button>
               ))}
             </div>
           )}

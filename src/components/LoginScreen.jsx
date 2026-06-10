@@ -80,8 +80,8 @@ function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
             <span className="login-ledger-date">28 JUL</span>
           </div>
           <div className="login-ledger-progress">
-            <span><CheckIcon size={14} /> Your month is mapped</span>
-            <strong>6 obligations</strong>
+            <span><CheckIcon size={14} /> Your year is mapped</span>
+            <strong>15 planning points</strong>
           </div>
         </div>
 

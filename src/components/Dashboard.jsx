@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from 'react';
+import React, { useMemo, useState, memo } from 'react';
 import TaskCard from './TaskCard';
 import ObligationTimeline from './ObligationTimeline';
 import {
@@ -33,6 +33,7 @@ function getNextTaskMessage(task) {
 }
 
 function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSummary }) {
+  const [expandedGroups, setExpandedGroups] = useState({});
   const monthLabel = useMemo(
     () => new Date().toLocaleDateString('en-AU', { month: 'long', year: 'numeric' }),
     []
@@ -47,6 +48,15 @@ function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSumma
   const pendingCount = tasks.length - grouped.completed.length;
   const nextTask = useMemo(() => getNextTask(tasks), [tasks]);
   const firstName = userProfile.fullName?.split(' ')[0] || 'there';
+  const scrollToGroup = (status) => {
+    document.getElementById(`task-section-${status}`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+  const toggleGroup = (status) => {
+    setExpandedGroups((current) => ({ ...current, [status]: !current[status] }));
+  };
 
   return (
     <section className="screen dashboard-screen fade-in">
@@ -102,32 +112,32 @@ function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSumma
         <div className="status-overview" aria-label="Monthly status summary">
           <div className="status-overview-heading">
             <div>
-              <p className="eyebrow">This month</p>
-              <h2>{pendingCount === 0 ? 'Everything is handled' : `${pendingCount} still in motion`}</h2>
+              <p className="eyebrow">Plan at a glance</p>
+              <h2>{pendingCount === 0 ? 'Everything is handled' : `${pendingCount} open obligations`}</h2>
             </div>
             <span className="status-overview-total mono">{tasks.length}</span>
           </div>
           <div className="status-overview-list">
-            <div className="status-overview-row">
+            <button type="button" className="status-overview-row" onClick={() => scrollToGroup('completed')}>
               <span className="metric-icon metric-icon--completed"><CheckIcon size={16} /></span>
               <span>Completed</span>
               <strong className="mono">{completedCount}</strong>
-            </div>
-            <div className="status-overview-row">
+            </button>
+            <button type="button" className="status-overview-row" onClick={() => scrollToGroup('overdue')}>
               <span className="metric-icon metric-icon--overdue"><AlertIcon size={16} /></span>
               <span>Needs attention</span>
               <strong className="mono">{grouped.overdue.length}</strong>
-            </div>
-            <div className="status-overview-row">
+            </button>
+            <button type="button" className="status-overview-row" onClick={() => scrollToGroup('due-soon')}>
               <span className="metric-icon metric-icon--due-soon"><ClockIcon size={16} /></span>
               <span>Due soon</span>
               <strong className="mono">{grouped['due-soon'].length}</strong>
-            </div>
-            <div className="status-overview-row">
+            </button>
+            <button type="button" className="status-overview-row" onClick={() => scrollToGroup('upcoming')}>
               <span className="metric-icon metric-icon--upcoming"><CalendarIcon size={16} /></span>
               <span>Scheduled ahead</span>
               <strong className="mono">{grouped.upcoming.length}</strong>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -164,8 +174,14 @@ function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSumma
           const list = grouped[status];
           if (!list.length) return null;
           const meta = getStatusMeta(status);
+          const isExpanded = Boolean(expandedGroups[status]);
+          const visibleTasks = isExpanded ? list : list.slice(0, 4);
           return (
-            <section key={status} className={`task-section task-section--${status}`}>
+            <section
+              key={status}
+              id={`task-section-${status}`}
+              className={`task-section task-section--${status}`}
+            >
               <div className="task-section-heading">
                 <div>
                   <span className={`section-status-dot section-status-dot--${status}`} aria-hidden="true" />
@@ -174,10 +190,21 @@ function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSumma
                 <span className="task-section-count mono">{list.length}</span>
               </div>
               <div className="task-list">
-                {list.map((task, index) => (
+                {visibleTasks.map((task, index) => (
                   <TaskCard key={task.id} task={task} onOpen={onOpenTask} index={index} />
                 ))}
               </div>
+              {list.length > 4 && (
+                <button
+                  type="button"
+                  className="task-group-toggle"
+                  onClick={() => toggleGroup(status)}
+                  aria-expanded={isExpanded}
+                >
+                  {isExpanded ? 'Show fewer' : `Show ${list.length - 4} more`}
+                  <ArrowRightIcon size={14} />
+                </button>
+              )}
             </section>
           );
         })}

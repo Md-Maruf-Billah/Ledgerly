@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CheckIcon, ArrowLeftIcon, ArrowRightIcon } from './Icons';
 
 const FREE_FEATURES = [
@@ -20,13 +20,16 @@ const PRO_FEATURES = [
 ];
 
 const ROADMAP = [
-  { label: 'BAS and IAS pre-fill', eta: 'Planned' },
-  { label: 'Accountant sharing mode', eta: 'Planned' },
-  { label: 'Xero and MYOB integration', eta: 'Research' },
-  { label: 'Mobile companion app', eta: 'Exploring' },
+  { label: 'BAS and IAS pre-fill', eta: 'Planned', detail: 'Draft figures would be staged for review before anything is lodged.' },
+  { label: 'Accountant sharing mode', eta: 'Planned', detail: 'Invite a trusted adviser to review records without sharing your login.' },
+  { label: 'Xero and MYOB integration', eta: 'Research', detail: 'Secure read-only connections are being evaluated for reliable reconciliation.' },
+  { label: 'Mobile companion app', eta: 'Exploring', detail: 'The responsive web app comes first, with native reminders under exploration.' },
 ];
 
-function PricingPlans({ onBack }) {
+function PricingPlans({ onBack, onToast }) {
+  const [showUpgradePreview, setShowUpgradePreview] = useState(false);
+  const [openRoadmapItem, setOpenRoadmapItem] = useState(null);
+
   return (
     <section className="screen fade-in">
       <div className="pricing-wrap">
@@ -74,21 +77,54 @@ function PricingPlans({ onBack }) {
                 </li>
               ))}
             </ul>
-            <button type="button" className="btn btn-primary pricing-cta">
+            <button
+              type="button"
+              className="btn btn-primary pricing-cta"
+              onClick={() => {
+                setShowUpgradePreview(true);
+                onToast?.('Pro plan preview opened', 'success');
+              }}
+              aria-expanded={showUpgradePreview}
+            >
               Upgrade to Pro <ArrowRightIcon size={15} />
             </button>
           </div>
         </div>
 
+        {showUpgradePreview && (
+          <div className="upgrade-preview fade-in" role="status">
+            <div>
+              <span className="eyebrow">Pro preview</span>
+              <h3>More room, same calm workflow</h3>
+              <p>Billing is intentionally disabled in this project demo. The full upgrade flow would continue to a secure checkout.</p>
+            </div>
+            <button type="button" className="btn btn-secondary" onClick={() => setShowUpgradePreview(false)}>
+              Close preview
+            </button>
+          </div>
+        )}
+
         <div className="roadmap-section">
           <h3 className="roadmap-heading">Coming soon</h3>
           <div className="roadmap-list">
-            {ROADMAP.map(item => (
-              <div key={item.label} className="roadmap-row">
-                <span className="roadmap-label">{item.label}</span>
-                <span className="roadmap-eta">{item.eta}</span>
-              </div>
-            ))}
+            {ROADMAP.map((item, index) => {
+              const isOpen = openRoadmapItem === index;
+              return (
+                <button
+                  type="button"
+                  key={item.label}
+                  className={`roadmap-row${isOpen ? ' roadmap-row--open' : ''}`}
+                  onClick={() => setOpenRoadmapItem(isOpen ? null : index)}
+                  aria-expanded={isOpen}
+                >
+                  <span>
+                    <span className="roadmap-label">{item.label}</span>
+                    {isOpen && <span className="roadmap-detail">{item.detail}</span>}
+                  </span>
+                  <span className="roadmap-eta">{item.eta}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

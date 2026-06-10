@@ -21,6 +21,7 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
     () => new Date(today.getFullYear(), today.getMonth(), 1)
   );
   const [selectedTask, setSelectedTask] = useState(null);
+  const [activeStatus, setActiveStatus] = useState('all');
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -36,22 +37,42 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
       .sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate))),
     [tasks, year, month]
   );
+  const visibleMonthTasks = useMemo(
+    () => activeStatus === 'all'
+      ? monthTasks
+      : monthTasks.filter((task) => task.status === activeStatus),
+    [monthTasks, activeStatus]
+  );
+  const yearMonths = useMemo(
+    () => Array.from({ length: 12 }, (_, index) => {
+      const count = tasks.filter((task) => {
+        const date = new Date(`${task.dueDate}T00:00:00`);
+        return date.getFullYear() === year && date.getMonth() === index;
+      }).length;
+      return {
+        index,
+        count,
+        label: new Date(year, index, 1).toLocaleDateString('en-AU', { month: 'short' }),
+      };
+    }),
+    [tasks, year]
+  );
 
   useEffect(() => {
     setSelectedTask((current) => {
-      if (current && monthTasks.some((task) => task.id === current.id)) return current;
-      return monthTasks[0] || null;
+      if (current && visibleMonthTasks.some((task) => task.id === current.id)) return current;
+      return visibleMonthTasks[0] || null;
     });
-  }, [monthTasks]);
+  }, [visibleMonthTasks]);
 
   const taskMap = useMemo(() => {
     const map = {};
-    monthTasks.forEach((task) => {
+    visibleMonthTasks.forEach((task) => {
       if (!map[task.dueDate]) map[task.dueDate] = [];
       map[task.dueDate].push(task);
     });
     return map;
-  }, [monthTasks]);
+  }, [visibleMonthTasks]);
 
   const cells = useMemo(() => {
     const firstDay = new Date(year, month, 1);
@@ -85,7 +106,12 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
   );
 
   const changeMonth = (offset) => {
+    setActiveStatus('all');
     setViewDate((date) => new Date(date.getFullYear(), date.getMonth() + offset, 1));
+  };
+  const selectMonth = (monthIndex) => {
+    setActiveStatus('all');
+    setViewDate(new Date(year, monthIndex, 1));
   };
 
   return (
@@ -127,13 +153,38 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
           {STATUS_ORDER.map((status) => {
             if (!counts[status]) return null;
             return (
-              <span key={status} className={`calendar-summary-item calendar-summary-item--${status}`}>
+              <button
+                type="button"
+                key={status}
+                className={`calendar-summary-item calendar-summary-item--${status}${activeStatus === status ? ' calendar-summary-item--active' : ''}`}
+                onClick={() => setActiveStatus(activeStatus === status ? 'all' : status)}
+                aria-pressed={activeStatus === status}
+              >
                 <span className="status-dot" aria-hidden="true" />
                 <span>{getStatusMeta(status).label}</span>
                 <strong className="mono">{counts[status]}</strong>
-              </span>
+              </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="calendar-year-rail" aria-label={`${year} month overview`}>
+        <span className="calendar-year-label mono">{year}</span>
+        <div className="calendar-year-months">
+          {yearMonths.map((item) => (
+            <button
+              type="button"
+              key={item.index}
+              className={`calendar-year-month${month === item.index ? ' calendar-year-month--active' : ''}`}
+              onClick={() => selectMonth(item.index)}
+              aria-current={month === item.index ? 'date' : undefined}
+              aria-label={`${item.label} ${year}, ${item.count} obligations`}
+            >
+              <span>{item.label}</span>
+              <strong className="mono">{item.count || '·'}</strong>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -185,7 +236,7 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
               </span>
               <div className="calendar-focus-heading">
                 <div>
-                  <p className="eyebrow">Focus</p>
+              <p className="eyebrow">Focus</p>
                   <span className={`status-badge status-badge--${selectedTask.status}`}>
                     <span className="status-dot" aria-hidden="true" />
                     {getStatusMeta(selectedTask.status).label}
@@ -194,6 +245,7 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
                 <CalendarIcon size={22} />
               </div>
               <h2>{selectedTask.name}</h2>
+              {selectedTask.isPlanning && <span className="planning-label">Planning checkpoint</span>}
               <p className="calendar-focus-description">{selectedTask.description || 'Open the checklist for guidance and a completion record.'}</p>
               <div className="calendar-focus-meta">
                 <span><CalendarIcon size={15} /> Due {formatDate(selectedTask.dueDate)}</span>

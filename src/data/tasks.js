@@ -48,7 +48,7 @@ export const businessTypeTasks = {
         'If you pay yourself a wage or have employees, super contributions for the April–June quarter are due 28 July. Missing this triggers the super guarantee charge.',
       dueDate: '2026-07-28',
       steps: [
-        'Calculate 11.5% of ordinary time earnings for the quarter',
+        'Calculate 12% of ordinary time earnings for the quarter',
         'Log in to your super clearing house or fund portal',
         'Submit the payment and download the payment confirmation',
         'Record the payment in your payroll or accounting software',
@@ -143,7 +143,7 @@ export const businessTypeTasks = {
         'Super guarantee payments for all eligible retail staff for the April–June quarter must clear your clearing house by 28 July.',
       dueDate: '2026-07-28',
       steps: [
-        'Calculate 11.5% of each employee\'s ordinary time earnings for Q4',
+        'Calculate 12% of each employee\'s ordinary time earnings for Q4',
         'Log in to your super clearing house and enter contribution amounts',
         'Submit and allow 3–5 business days for processing to funds',
         'Download payment confirmation and file against each employee record',
@@ -171,7 +171,7 @@ export const businessTypeTasks = {
       name: 'STP Finalisation — FY2026',
       description:
         'Finalising your Single Touch Payroll data lets employees access their income statements via myGov so they can lodge their tax returns.',
-      dueDate: '2026-05-14',
+      dueDate: '2026-07-14',
       steps: [
         'Check all staff payroll records in your STP-enabled software',
         'Review and correct any discrepancies in wages, allowances, or PAYG',
@@ -184,10 +184,10 @@ export const businessTypeTasks = {
       name: 'Quarterly Super Payment — Q4',
       description:
         'Casual and part-time hospitality rosters make super underpayments easy to miss. Confirming all eligible hours prevents super guarantee charges.',
-      dueDate: '2026-06-21',
+      dueDate: '2026-07-28',
       steps: [
         'Export all timesheets and confirm ordinary time earnings per employee',
-        'Calculate 11.5% super on eligible earnings including casual loadings',
+        'Calculate 12% super on eligible earnings including casual loadings',
         'Submit contributions through your clearing house before the deadline',
         'Save payment receipts against each employee\'s payroll record',
       ],
@@ -445,7 +445,7 @@ export const businessTypeTasks = {
         'Super contributions for all eligible employees for the April–June quarter must clear your clearing house by 28 July to avoid the super guarantee charge.',
       dueDate: '2026-07-28',
       steps: [
-        'Calculate 11.5% of each employee\'s ordinary time earnings for Q4',
+        'Calculate 12% of each employee\'s ordinary time earnings for Q4',
         'Log in to your super clearing house portal (e.g. ATO Small Business Super)',
         'Enter each employee\'s fund details and contribution amount',
         'Submit and save the payment confirmation for each employee',
@@ -493,6 +493,183 @@ export const businessTypeTasks = {
   ],
 
 };
+
+const ANNUAL_PLANNING_TASKS = [
+  {
+    key: 'eofy-records',
+    name: 'EOFY Records Checkpoint',
+    description:
+      'A planning checkpoint to make sure the records behind your year-end figures are complete before the final June rush.',
+    dueDate: '2026-06-18',
+    priority: 'high',
+    steps: [
+      'Reconcile bank and card transactions through the end of May',
+      'Match uncategorised transactions to receipts or invoices',
+      'List missing records and assign an owner for each one',
+      'Book a final June reconciliation session',
+    ],
+  },
+  {
+    key: 'asset-deductions',
+    name: 'Asset and Deductions Review',
+    description:
+      'Review larger purchases and common deductions before year end so your accountant receives a clean, useful record.',
+    dueDate: '2026-06-25',
+    priority: 'high',
+    steps: [
+      'List equipment and assets purchased during the financial year',
+      'Gather invoices for subscriptions, insurance, vehicle, and home office costs',
+      'Flag mixed personal and business expenses for review',
+      'Save the summary with your year-end records',
+    ],
+  },
+  {
+    key: 'year-end-reconcile',
+    name: 'Year-End Accounts Reconciliation',
+    description:
+      'A practical July checkpoint to close the books, investigate differences, and prepare reliable opening balances.',
+    dueDate: '2026-07-07',
+    priority: 'high',
+    steps: [
+      'Reconcile bank, credit card, and payment platform balances to 30 June',
+      'Review outstanding invoices and bills for accuracy',
+      'Check owner drawings, loans, and transfers are correctly classified',
+      'Export a draft profit and loss and balance sheet',
+    ],
+  },
+  {
+    key: 'tax-records-pack',
+    name: 'Tax Records Pack',
+    description:
+      'Collect the documents your tax professional or future self will need, then store them as one organised year-end pack.',
+    dueDate: '2026-07-21',
+    priority: 'medium',
+    steps: [
+      'Collect financial reports, receipts, and major purchase invoices',
+      'Add payroll, super, and contractor summaries where relevant',
+      'Write down unresolved questions for your tax professional',
+      'Store the pack in a secure folder with a clear financial-year label',
+    ],
+  },
+  {
+    key: 'q1-cashflow',
+    name: 'Quarter One Cash-Flow Review',
+    description:
+      'Check the first weeks of the new financial year and adjust tax set-asides before small gaps become expensive surprises.',
+    dueDate: '2026-08-18',
+    priority: 'medium',
+    steps: [
+      'Compare actual July income and expenses with your forecast',
+      'Review the amount reserved for tax and GST',
+      'Identify invoices that need follow-up',
+      'Adjust the next eight weeks of planned spending',
+    ],
+  },
+  {
+    key: 'sep-quarter',
+    name: 'September Quarter Records Check',
+    description:
+      'A planning checkpoint to have the September quarter records ready before lodgement work begins.',
+    dueDate: '2026-10-15',
+    priority: 'medium',
+    steps: [
+      'Reconcile July to September transactions',
+      'Review sales, purchases, payroll, and contractor records',
+      'Resolve uncategorised items and duplicate entries',
+      'Prepare a short quarter summary for lodgement',
+    ],
+  },
+  {
+    key: 'dec-quarter',
+    name: 'December Quarter Records Check',
+    description:
+      'Start the new calendar year with the December quarter reconciled and the next obligations clearly planned.',
+    dueDate: '2027-01-15',
+    priority: 'medium',
+    steps: [
+      'Reconcile October to December transactions',
+      'Review payroll and super records where relevant',
+      'Check outstanding customer and supplier balances',
+      'Schedule the quarter lodgement work',
+    ],
+  },
+  {
+    key: 'mar-quarter',
+    name: 'March Quarter Records Check',
+    description:
+      'Prepare the March quarter records early and note any issues that need professional advice before year end.',
+    dueDate: '2027-04-15',
+    priority: 'medium',
+    steps: [
+      'Reconcile January to March transactions',
+      'Check revenue and expense coding for unusual movements',
+      'Review payroll, super, and contractor records where relevant',
+      'List unresolved questions before lodgement',
+    ],
+  },
+  {
+    key: 'next-eofy',
+    name: 'Next EOFY Readiness Review',
+    description:
+      'A calm early start for the next year end, focused on missing records, major purchases, and work that should not wait until June.',
+    dueDate: '2027-05-28',
+    priority: 'medium',
+    steps: [
+      'Review record completeness for the financial year to date',
+      'Check asset purchases and disposal records',
+      'Confirm payroll and contractor information is current',
+      'Create a short June close plan',
+    ],
+  },
+];
+
+const EMPLOYER_TRANSITION_TASKS = [
+  {
+    key: 'payday-super-readiness',
+    name: 'Payday Super Readiness Check',
+    description:
+      'Payday Super begins on 1 July 2026. Use this checkpoint to confirm your payroll and payment process is ready for the change.',
+    dueDate: '2026-06-24',
+    priority: 'high',
+    steps: [
+      'Confirm your payroll software is ready for Payday Super',
+      'Review employee fund details and resolve rejected information',
+      'Confirm the payment process and internal owner',
+      'Run a test checklist before the first July payday',
+    ],
+  },
+  {
+    key: 'payroll-close',
+    name: 'Payroll Year-End Reconciliation',
+    description:
+      'Reconcile payroll categories, withholding, leave, and reported totals before completing year-end declarations.',
+    dueDate: '2026-07-09',
+    priority: 'high',
+    steps: [
+      'Compare payroll reports with the general ledger',
+      'Review allowances, deductions, termination payments, and leave',
+      'Correct employee details and year-to-date differences',
+      'Save a reconciliation report for the finalisation record',
+    ],
+  },
+];
+
+const EMPLOYER_TYPES = new Set(['Retail', 'Hospitality', 'Small Team']);
+
+Object.entries(businessTypeTasks).forEach(([type, tasks]) => {
+  const prefix = type.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const planningTasks = [
+    ...ANNUAL_PLANNING_TASKS,
+    ...(EMPLOYER_TYPES.has(type) ? EMPLOYER_TRANSITION_TASKS : []),
+  ].map((task) => ({
+    ...task,
+    id: `${prefix}-plan-${task.key}`,
+    isPlanning: true,
+  }));
+
+  businessTypeTasks[type] = [...tasks, ...planningTasks]
+    .sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+});
 
 export const demoUserProfile = {
   fullName: 'Jordan Miller',

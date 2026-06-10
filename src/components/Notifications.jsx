@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertIcon, ClockIcon, CheckIcon, InfoIcon, BellIcon, ArrowLeftIcon } from './Icons';
+import { AlertIcon, ClockIcon, CheckIcon, InfoIcon, BellIcon, ArrowLeftIcon, ArrowRightIcon } from './Icons';
 
 const TYPE_ICON = {
   overdue:   <AlertIcon size={15} />,
@@ -19,8 +19,14 @@ function timeAgo(timestamp) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function Notifications({ notifications, onBack }) {
+function Notifications({ notifications, tasks = [], onBack, onOpenTask, onOpenCalendar }) {
   const sorted = [...notifications].sort((a, b) => b.timestamp - a.timestamp);
+  const getNotificationAction = (notification) => {
+    const matchingTask = tasks.find((task) => notification.title?.startsWith(task.name));
+    if (matchingTask) return () => onOpenTask?.(matchingTask);
+    if (notification.type === 'system') return onOpenCalendar;
+    return null;
+  };
 
   return (
     <section className="screen fade-in">
@@ -38,22 +44,32 @@ function Notifications({ notifications, onBack }) {
           </div>
         ) : (
           <ul className="notif-list" aria-label="Notifications">
-            {sorted.map(n => (
-              <li
-                key={n.id}
-                className={`notif-item notif-type-${n.type}${n.read ? ' notif-read' : ''}`}
-              >
-                <span className="notif-icon" aria-hidden="true">
-                  {TYPE_ICON[n.type] || <InfoIcon size={15} />}
-                </span>
-                <div className="notif-body">
-                  <p className="notif-title">{n.title}</p>
-                  <p className="notif-text">{n.body}</p>
-                  <p className="notif-time">{timeAgo(n.timestamp)}</p>
-                </div>
-                {!n.read && <span className="notif-dot" aria-label="Unread" />}
-              </li>
-            ))}
+            {sorted.map(n => {
+              const action = getNotificationAction(n);
+              return (
+                <li key={n.id}>
+                  <button
+                    type="button"
+                    className={`notif-item notif-type-${n.type}${n.read ? ' notif-read' : ''}`}
+                    onClick={action || undefined}
+                    disabled={!action}
+                  >
+                    <span className="notif-icon" aria-hidden="true">
+                      {TYPE_ICON[n.type] || <InfoIcon size={15} />}
+                    </span>
+                    <span className="notif-body">
+                      <span className="notif-title">{n.title}</span>
+                      <span className="notif-text">{n.body}</span>
+                      <span className="notif-time">{timeAgo(n.timestamp)}</span>
+                    </span>
+                    <span className="notif-end">
+                      {!n.read && <span className="notif-dot" aria-label="Unread" />}
+                      {action && <ArrowRightIcon size={15} />}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

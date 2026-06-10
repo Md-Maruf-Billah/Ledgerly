@@ -156,7 +156,13 @@ function App() {
           setCurrentScreen(saved.currentScreen);
         }
         if (saved.userProfile) setUserProfile(saved.userProfile);
-        if (saved.tasks) setTasks(recomputeStatuses(saved.tasks));
+        if (saved.tasks) {
+          const profileType = saved.userProfile?.type;
+          const templateTasks = businessTypeTasks[profileType] || [];
+          const existingIds = new Set(saved.tasks.map((task) => task.id));
+          const missingTemplateTasks = templateTasks.filter((task) => !existingIds.has(task.id));
+          setTasks(recomputeStatuses([...saved.tasks, ...missingTemplateTasks]));
+        }
         if (saved.completedTasks) setCompletedTasks(saved.completedTasks);
         if (typeof saved.completedThisMonth === 'number') setCompletedThisMonth(saved.completedThisMonth);
         if (saved.notifications) setNotifications(saved.notifications);
@@ -423,6 +429,7 @@ function App() {
           tasks={pendingTasks}
           completedTasks={completedTasks}
           onExportSuccess={() => showToast('Summary exported successfully')}
+          onOpenTask={handleOpenTask}
         />
       )}
       {currentScreen === 'settings' && (
@@ -437,11 +444,17 @@ function App() {
       {currentScreen === 'notifications' && (
         <Notifications
           notifications={notifications}
+          tasks={tasks}
           onBack={() => handleNavigate('dashboard')}
+          onOpenTask={handleOpenTask}
+          onOpenCalendar={() => handleNavigate('calendar')}
         />
       )}
       {currentScreen === 'pricing' && (
-        <PricingPlans onBack={() => handleNavigate('dashboard')} />
+        <PricingPlans
+          onBack={() => handleNavigate('dashboard')}
+          onToast={showToast}
+        />
       )}
       {currentScreen === 'calendar' && (
         <CalendarView
