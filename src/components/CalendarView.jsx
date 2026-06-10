@@ -177,7 +177,12 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
 
         <aside className="calendar-focus" aria-live="polite">
           {selectedTask ? (
-            <>
+            <div key={selectedTask.id} className="calendar-focus-content">
+              <span className="calendar-focus-motif" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
               <div className="calendar-focus-heading">
                 <div>
                   <p className="eyebrow">Focus</p>
@@ -201,7 +206,7 @@ function CalendarView({ tasks, onBack, onOpenTask }) {
                 {selectedTask.status === 'completed' ? 'View record' : 'Open checklist'}
                 <ArrowRightIcon size={16} />
               </button>
-            </>
+            </div>
           ) : (
             <div className="calendar-focus-empty">
               <CalendarIcon size={28} />

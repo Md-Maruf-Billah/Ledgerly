@@ -54,6 +54,16 @@ Color is never the sole status signal. Every status-bearing control includes tex
 
 Desktop uses a persistent navigation rail for Overview, Calendar, Reports, Alerts, Plan, and Settings. Tablet collapses the rail. Mobile uses a bottom navigation with a prominent Add action.
 
+Phone layouts are designed for short, one-handed check-ins:
+
+- The bottom navigation and primary add action respect device safe areas.
+- Working content uses a single-column flow with 44px minimum touch targets.
+- Setup forms keep the primary action within thumb reach.
+- Calendar tasks become compact status targets while the focus panel carries full context.
+- Dense report metrics remain visible as a compact three-up summary.
+- Task details and custom-task creation use bottom sheets.
+- Narrow phones down to 320px and landscape phone layouts must not introduce horizontal overflow.
+
 The dashboard hierarchy is:
 
 1. Current month and calm context.
@@ -72,6 +82,9 @@ The calendar is a planner canvas with a contextual focus panel on desktop and a 
 - Buttons and pressable rows use subtle scale feedback.
 - Hover styles are wrapped in `(hover: hover) and (pointer: fine)`.
 - Onboarding and completion may use richer motion because they are rare.
+- The animated paper-ledger motif is reserved for the next-obligation focus surface.
+- Planner selection uses a short content transition to explain the selected-task relationship.
+- Loading, onboarding, and completion may animate their existing assets, but routine navigation does not wait for choreography.
 - `prefers-reduced-motion` reduces all motion to near-instant state changes.
 
 ## Accessibility

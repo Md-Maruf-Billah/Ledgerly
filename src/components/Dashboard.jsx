@@ -68,6 +68,11 @@ function Dashboard({ userProfile, tasks, completedCount, onOpenTask, onOpenSumma
             className={`next-obligation next-obligation--${nextTask.status}`}
             onClick={() => onOpenTask(nextTask)}
           >
+            <span className="obligation-motion" aria-hidden="true">
+              <span className="obligation-motion-sheet obligation-motion-sheet--one" />
+              <span className="obligation-motion-sheet obligation-motion-sheet--two" />
+              <span className="obligation-motion-ring" />
+            </span>
             <span className="next-obligation-topline">
               <span className="eyebrow">Next obligation</span>
               <span className={`status-badge status-badge--${nextTask.status}`}>
