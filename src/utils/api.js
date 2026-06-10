@@ -60,6 +60,15 @@ async function readResponseData(res) {
   }
 }
 
+function getErrorMessage(data, fallback) {
+  if (typeof data?.detail === 'string') return data.detail;
+  if (Array.isArray(data?.detail)) {
+    const message = data.detail.find((item) => typeof item?.msg === 'string')?.msg;
+    if (message) return message.replace(/^Value error,\s*/i, '');
+  }
+  return fallback;
+}
+
 // ─── Core request ─────────────────────────────────────────────────────────────
 
 async function request(method, path, body) {
@@ -91,10 +100,10 @@ async function request(method, path, body) {
         }));
         return { data: null, error: 'Your session has expired. Please sign in again.' };
       }
-      return { data: null, error: data?.detail ?? 'Incorrect email or password.' };
+      return { data: null, error: getErrorMessage(data, 'Incorrect email or password.') };
     }
 
-    if (!res.ok) return { data: null, error: data?.detail ?? 'Request failed.' };
+    if (!res.ok) return { data: null, error: getErrorMessage(data, 'Request failed.') };
     return { data, error: null };
   } catch (err) {
     // Network error — don't expose raw browser error message to UI

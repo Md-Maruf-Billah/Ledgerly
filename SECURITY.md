@@ -1,5 +1,14 @@
 # Security Policy
 
+## Account Passwords
+
+New passwords must contain 12 to 128 characters. Ledgerly supports passphrases
+and password-manager generated values without requiring arbitrary character
+composition. A small blocklist rejects obvious commonly used passwords.
+
+Existing accounts remain able to sign in after policy updates; stronger rules
+are enforced when a new account is registered.
+
 ## Supported Versions
 
 | Version | Supported |

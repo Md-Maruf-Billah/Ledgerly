@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRightIcon, CalendarIcon, CheckIcon, ClockIcon } from './Icons';
+import { getPasswordError, isValidEmail } from '../utils/sanitize.js';
 
 function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
   const [mode, setMode] = useState('signin');
@@ -18,9 +19,12 @@ function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
     event.preventDefault();
     const nextErrors = {};
     if (!form.email.trim()) nextErrors.email = 'Email is required.';
+    else if (!isValidEmail(form.email)) nextErrors.email = 'Enter a valid email address.';
     if (!form.password) nextErrors.password = 'Password is required.';
-    if (mode === 'signup' && form.password.length < 6) {
-      nextErrors.password = 'Password must be at least 6 characters.';
+    else if (form.password.length > 128) nextErrors.password = 'Password must be 128 characters or fewer.';
+    else if (mode === 'signup') {
+      const passwordError = getPasswordError(form.password);
+      if (passwordError) nextErrors.password = passwordError;
     }
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
@@ -124,12 +128,17 @@ function LoginScreen({ onLoginSuccess, onRegisterSuccess, onDemoLogin }) {
                 type="password"
                 value={form.password}
                 onChange={(event) => handleChange('password', event.target.value)}
-                placeholder={mode === 'signup' ? 'At least 6 characters' : 'Enter your password'}
+                placeholder={mode === 'signup' ? 'At least 12 characters' : 'Enter your password'}
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 disabled={loading}
                 aria-invalid={Boolean(errors.password)}
+                minLength={mode === 'signup' ? 12 : undefined}
+                maxLength={128}
               />
               {errors.password && <small className="error-text">{errors.password}</small>}
+              {mode === 'signup' && !errors.password && (
+                <small className="password-hint">Use 12+ characters. Passphrases and password managers work well.</small>
+              )}
             </label>
 
             {authError && <p className="auth-error" role="alert">{authError}</p>}

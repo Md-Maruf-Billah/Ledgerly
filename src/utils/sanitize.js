@@ -63,3 +63,21 @@ export function isDateInRange(value) {
 export function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
+
+const COMMON_PASSWORDS = new Set([
+  '123456789012',
+  'password1234',
+  'qwerty123456',
+  'letmein123456',
+  'admin12345678',
+]);
+
+export function getPasswordError(value) {
+  if (!value) return 'Password is required.';
+  if (value.length < 12) return 'Use at least 12 characters.';
+  if (value.length > 128) return 'Password must be 128 characters or fewer.';
+  if (COMMON_PASSWORDS.has(value.toLowerCase())) {
+    return 'Choose a less common password.';
+  }
+  return '';
+}

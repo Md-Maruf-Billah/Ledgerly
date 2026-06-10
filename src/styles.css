@@ -457,6 +457,13 @@ select {
   font-weight: 600;
 }
 
+.password-hint {
+  color: var(--ink-400);
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
 .auth-error {
   margin: 0;
   padding: 10px 12px;
