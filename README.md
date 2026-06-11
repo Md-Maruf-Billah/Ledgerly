@@ -68,8 +68,6 @@ Copy `.env.example` to `.env.local` and `backend/.env.example` to
 4. Row Level Security ensures users can access only their own records.
 5. React refreshes the interface with the persisted response.
 
-See [Architecture](docs/ARCHITECTURE.md), [Demo Guide](docs/DEMO_GUIDE.md),
-and [Prompt Appendix](docs/PROMPTS.md) for assessment documentation.
 
 ## Security
 
