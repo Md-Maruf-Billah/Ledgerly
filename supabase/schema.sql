@@ -1,6 +1,6 @@
 -- ============================================================
--- Ledgerly: Draft Supabase Schema
--- STATUS: PLANNING ONLY. DO NOT APPLY until Supabase project exists.
+-- Ledgerly: Supabase Schema
+-- Reference schema for the deployed Supabase project.
 -- Generated: 2026-06-08
 -- ============================================================
 --
