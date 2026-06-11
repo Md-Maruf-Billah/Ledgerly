@@ -4,7 +4,7 @@ Ledgerly is a full-stack compliance planner for Australian sole traders and
 micro-businesses. It turns BAS, PAYG, superannuation, renewals, and tax dates
 into a clear annual plan with guided task workflows.
 
-## Assignment Stack
+## Tech Stack
 
 | Layer | Technology | Responsibility |
 | --- | --- | --- |
